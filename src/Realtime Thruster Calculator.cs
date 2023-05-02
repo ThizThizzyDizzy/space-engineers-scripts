@@ -150,7 +150,7 @@ public void Main(String arg){
     String directionS = thrusters.getMaxDirectionS(planet, alt);
     Vector3I direction = thrusters.getMaxDirection(planet, alt);
     double thrust = thrusters.getThrust(direction, planet, alt);
-    double shipMass = ((MyShipMass)mass).PhysicalMass;
+    double shipMass = ((MyShipMass)mass).TotalMass;
     double rawAcceleration = thrust/shipMass;
     text+="Current environment: "+planet.name;
     if(mode==MODE_BUILD){
