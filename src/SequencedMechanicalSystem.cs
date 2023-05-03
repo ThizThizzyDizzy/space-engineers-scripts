@@ -244,7 +244,7 @@ public class RotorSequenceStep : SequenceStep{
 }
 public class RotorStopSequenceStep : SequenceStep
 {
-    private float toleran = 0.001f;
+    private float toleran = 0.0001f;
     public IMyMotorStator rotor;
     public Program p;
     public float startAngle, lastAngle;
