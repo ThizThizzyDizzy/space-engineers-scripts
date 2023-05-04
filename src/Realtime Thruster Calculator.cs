@@ -672,11 +672,12 @@ public class InventoryContainer{
     public List<IMyTerminalBlock> containers = new List<IMyTerminalBlock>();
     Program p;
     double lastFill = 0;
-    double lastFillT = 0;
     double rate = 0;
     public double rateT = 0;
     String type = "";
-    public int interval = 10;
+    public int interval = 30;
+    public int counts = 10;
+    public List<double> fills = new List<double>();
     public int timer = 0;
     public InventoryContainer(Program p, String type){
         this.p = p;
@@ -694,12 +695,13 @@ public class InventoryContainer{
         }else return;
         double fill = getFillLevel();
         double diff = fill-lastFill;
-        rate = diff*6*interval;
+        rate = diff*6/interval;
         lastFill = fill;
         double fillT = getFillLevelI();
-        double diffT = fillT-lastFillT;
-        rateT = diffT*6*interval;
-        lastFillT = fillT;
+        fills.Add(fillT);
+        if(fills.Count>counts)fills.Remove(0);
+        double diffT = fills[fills.Count-1]-fills[0];
+        rateT = diffT*6/interval/fills.Count;
     }
     public void search(IMyCubeGrid grid, String type){
         List<IMyTerminalBlock> lst = new List<IMyTerminalBlock>();
