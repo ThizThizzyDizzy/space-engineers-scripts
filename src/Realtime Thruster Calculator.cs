@@ -145,7 +145,7 @@ public void Main(String arg){
     }
     String text = (preferredDirection==Vector3I.Zero?"":"PREFERRED DIRECTION: "+preferredDirectionS+" ");//(mode==MODE_BUILD?"Construction Mode":(mode==MODE_FLY?"Flight Mode":"NONE"))+" ";
     if(planningMode)text+="PLANNING MODE ";
-    text+="\n";
+    if(text!="")text+="\n";
     double alt = (double)seaLevelElevation;
     String directionS = thrusters.getMaxDirectionS(planet, alt);
     Vector3I direction = thrusters.getMaxDirection(planet, alt);
@@ -294,12 +294,15 @@ void display(String text){
         }
     }
     if(jumpdrive.drives.Count>0){
+        bool charged = jumpdrive.getChargePercent()>=1;
         if(wideMode){
-            text+="\nJump Drive Charge: "+makeReadable(jumpdrive.getChargePercent()*100)+"% (Charging at "+makeReadableMetric(Math.Abs(jumpdrive.getNetChange()))+"W, Charged in "+makeReadableTime(jumpdrive.getSecondsUntilCharged())+")";
+            text+="\nJump Drive Charge: "+makeReadable(jumpdrive.getChargePercent()*100)+"%"+(charged?"":" (Charging at "+makeReadableMetric(Math.Abs(jumpdrive.getNetChange()))+"W, Charged in "+makeReadableTime(jumpdrive.getSecondsUntilCharged())+")");
         }else{
             text+="\nJump Drive Charge: "+makeReadable(jumpdrive.getChargePercent()*100)+"%";
-            text+="\nJump Drive Charging at "+makeReadableMetric(Math.Abs(jumpdrive.getNetChange()))+"W";
-            text+="\nJump Drive Charged in "+makeReadableTime(jumpdrive.getSecondsUntilCharged());
+            if(!charged){
+                text+="\nJump Drive Charging at "+makeReadableMetric(Math.Abs(jumpdrive.getNetChange()))+"W";
+                text+="\nJump Drive Charged in "+makeReadableTime(jumpdrive.getSecondsUntilCharged());
+            }
         }
     }
     if(panel==null){
