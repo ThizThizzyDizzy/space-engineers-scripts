@@ -189,6 +189,7 @@ public class Sequence : SequenceStep{
     }
     public override float getProgress(){
         if(isFinished())return 1;
+        if(step<0)step = 0;
         return (step+(step<0?0:steps[step].getProgress()))/steps.Count;
     }
     public bool isFinished(){
