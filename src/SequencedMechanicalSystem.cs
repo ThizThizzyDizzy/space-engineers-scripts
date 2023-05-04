@@ -2,6 +2,7 @@ public List<Sequence> sequences = new List<Sequence>();
 public Sequence currentSequence;
 public bool useCustomData = true;
 public int initialize = 0;
+public ConditionStep currentCondition;
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
 }
@@ -11,6 +12,13 @@ public bool Init(int i) {
 public void newSequence(String name){
     currentSequence = new Sequence(name, this);
     sequences.Add(currentSequence);
+}
+public void runSequence(String name){
+    Sequence seq = null;
+    foreach(Sequence se in sequences){
+        if(se.name==name)seq = se;
+    }
+    addSequenceStep(seq);
 }
 public void addRotor(String block, float target){
     addRotor(block, target, 30);
@@ -49,6 +57,23 @@ public void addToggle(String block, bool enable){
 public void addDelay(int delay){
     addSequenceStep(new DelayStep(this, delay));
 }
+public void addOrCondition(){
+    currentCondition = new ConditionStep(this, true);
+    addSequenceStep(currentCondition);
+}
+public void addAndCondition(){
+    currentCondition = new ConditionStep(this, false);
+    addSequenceStep(currentCondition);
+}
+public void thenCondition(){
+    if(currentCondition!=null)currentCondition.buildingThen = true;
+}
+public void elseCondition(){
+    if(currentCondition!=null){
+        currentCondition.buildingThen = true;
+        currentCondition.inverted = true;
+    }
+}
 public void addParallel(){
     addSequenceStep(new ParallelStep(this));
 }
@@ -77,6 +102,14 @@ public void endParallel(){
 public void addSequenceStep(SequenceStep step){
     if(currentSequence.steps.Count==0){
         currentSequence.steps.Add(step);
+        return;
+    }
+    if(currentCondition!=null){
+        if(currentCondition.buildingThen){
+            currentCondition.thenStep = step;
+            currentCondition = null;
+        }
+        else currentCondition.conditions.Add(step);
         return;
     }
     SequenceStep last = currentSequence.steps[currentSequence.steps.Count-1];
@@ -125,8 +158,8 @@ public void Main(String arg){
         }
     }
 }
-public class Sequence{
-    public float tolerance = 0.01f;
+public class Sequence : SequenceStep{
+    public new float tolerance = 0.01f;
     public string name;
     public int step = -1;
     public bool breakRepeat = false;
@@ -136,11 +169,11 @@ public class Sequence{
         this.name = name;
         this.p = p;
     }
-    public void start(){
+    public override void start(){
         step = 0;
         if(steps.Count>0)steps[0].start();
     }
-    public void process(){
+    public override void process(){
         if(step==-1)return;
         p.Echo("Step "+(step+1)+"/"+steps.Count);
         if(steps.Count>step){
@@ -153,6 +186,10 @@ public class Sequence{
                 if(steps.Count>step)steps[step].start();
             }
         }
+    }
+    public override float getProgress(){
+        if(isFinished())return 1;
+        return (step+steps[step].getProgress())/steps.Count;
     }
     public bool isFinished(){
         return step==steps.Count;
@@ -198,6 +235,39 @@ public class ParallelStep : SequenceStep{
     }
     public override void finish(){
         foreach(SequenceStep step in substeps)step.finish();
+    }
+}
+public class ConditionStep : SequenceStep{
+    public List<SequenceStep> conditions = new List<SequenceStep>();
+    public SequenceStep thenStep = null;
+    public bool buildingThen = false;
+    public Program p;
+    public bool or;
+    public bool conditionMet;
+    public bool inverted = false;
+    public ConditionStep(Program p, bool isOr){
+        this.p = p;
+        this.or = isOr;
+    }
+    public override float getProgress(){
+        if(!conditionMet)return 1;
+        return thenStep.getProgress();
+    }
+    public override void start(){
+        conditionMet = or?false:true;
+        foreach(SequenceStep step in conditions){
+            bool fin = step.isFinished();
+            if(or)conditionMet |= fin;
+            else conditionMet &= fin;
+        }
+        if(inverted)conditionMet = !conditionMet;
+        if(conditionMet)thenStep.start();
+    }
+    public override void process(){
+        if(conditionMet)thenStep.process();
+    }
+    public override void finish(){
+        if(conditionMet)thenStep.finish();
     }
 }
 public class RotorSequenceStep : SequenceStep{
