@@ -671,14 +671,11 @@ public class SpecificThrusterConfiguration{
 public class InventoryContainer{
     public List<IMyTerminalBlock> containers = new List<IMyTerminalBlock>();
     Program p;
-    double lastFill = 0;
-    double rate = 0;
     public double rateT = 0;
     String type = "";
-    public int interval = 30;
-    public int counts = 10;
-    public List<double> fills = new List<double>();
-    public int timer = 0;
+    public int timeout = 60;
+    public double last = -1;
+    public int time = 0;
     public InventoryContainer(Program p, String type){
         this.p = p;
         this.type = type;
@@ -689,19 +686,15 @@ public class InventoryContainer{
         search(p.Me.CubeGrid, type);
     }
     public void tick(){
-        timer++;
-        if(timer>=interval){
-            timer-=interval;
-        }else return;
-        double fill = getFillLevel();
-        double diff = fill-lastFill;
-        rate = diff*6/interval;
-        lastFill = fill;
+        time++;
         double fillT = getFillLevelI();
-        fills.Add(fillT);
-        if(fills.Count>counts)fills.Remove(0);
-        double diffT = fills[fills.Count-1]-fills[0];
-        rateT = diffT*6/interval/fills.Count;
+        if(last==-1)last = fillT;
+        if(fillT!=last||time>=timeout){
+            double diffT = fillT-last;
+            rateT = diffT*6/time;
+            time = 0;
+            last = fillT;
+        }
     }
     public void search(IMyCubeGrid grid, String type){
         List<IMyTerminalBlock> lst = new List<IMyTerminalBlock>();
