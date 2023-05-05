@@ -3,6 +3,7 @@ public Sequence currentSequence;
 public bool useCustomData = true;
 public int initialize = 0;
 public ConditionStep currentCondition;
+public Dictionary<String, object> variables = new Dictionary<String, object>();
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
 }
@@ -19,6 +20,19 @@ public void runSequence(String name){
         if(se.name==name)seq = se;
     }
     addSequenceStep(seq);
+}
+public void addHinge(String block, float target){
+    addRotor(block, target);
+}
+public void addHinge(String block, float target, float speed){
+    addRotor(block, target, speed);
+}
+public void addHinge(String block, float target, float speed, float easing){
+    addRotor(block, target, speed, easing);
+}
+public void addHingeStop(string hinge)
+{
+    addRotorStop(hinge);
 }
 public void addRotor(String block, float target){
     addRotor(block, target, 30);
@@ -57,22 +71,17 @@ public void addToggle(String block, bool enable){
 public void addDelay(int delay){
     addSequenceStep(new DelayStep(this, delay));
 }
-public void addOrCondition(){
-    currentCondition = new ConditionStep(this, true);
-    addSequenceStep(currentCondition);
+public void setVar(String var, object val)
+{
+    addSequenceStep(new SetVarStep(this, var, val));
 }
-public void addAndCondition(){
-    currentCondition = new ConditionStep(this, false);
-    addSequenceStep(currentCondition);
+public void setConditional(String var){
+    setConditional(var, true);
 }
-public void thenCondition(){
-    if(currentCondition!=null)currentCondition.buildingThen = true;
-}
-public void elseCondition(){
-    if(currentCondition!=null){
-        currentCondition.buildingThen = true;
-        currentCondition.inverted = true;
-    }
+public void setConditional(String var, object val){
+    ConditionStep condition = new ConditionStep(this, var, val);
+    addSequenceStep(condition);
+    currentCondition = condition;
 }
 public void addParallel(){
     addSequenceStep(new ParallelStep(this));
@@ -105,11 +114,8 @@ public void addSequenceStep(SequenceStep step){
         return;
     }
     if(currentCondition!=null){
-        if(currentCondition.buildingThen){
-            currentCondition.thenStep = step;
-            currentCondition = null;
-        }
-        else currentCondition.conditions.Add(step);
+        currentCondition.step = step;
+        currentCondition = null;
         return;
     }
     SequenceStep last = currentSequence.steps[currentSequence.steps.Count-1];
@@ -142,6 +148,9 @@ public void Main(String arg){
         foreach(Sequence s in sequences){
             s.breakRepeat = false;
         }
+    }
+    foreach(String s in variables.Keys){
+        Echo(s+": "+variables[s]);
     }
     foreach(Sequence s in sequences){
         if(s.step!=-1){
@@ -188,8 +197,7 @@ public class Sequence : SequenceStep{
         }
     }
     public override float getProgress(){
-        if(isFinished())return 1;
-        if(step<0)step = 0;
+        if(isFinished()||step==-1)return 1;
         return (step+(step<0?0:steps[step].getProgress()))/steps.Count;
     }
     public bool isFinished(){
@@ -238,37 +246,47 @@ public class ParallelStep : SequenceStep{
         foreach(SequenceStep step in substeps)step.finish();
     }
 }
-public class ConditionStep : SequenceStep{
-    public List<SequenceStep> conditions = new List<SequenceStep>();
-    public SequenceStep thenStep = null;
-    public bool buildingThen = false;
+public class SetVarStep : SequenceStep{
+    public String var;
+    public object val;
     public Program p;
-    public bool or;
-    public bool conditionMet;
-    public bool inverted = false;
-    public ConditionStep(Program p, bool isOr){
+    public SetVarStep(Program p, String var, object value){
         this.p = p;
-        this.or = isOr;
+        this.var = var;
+        this.val = value;
+    }
+    public override float getProgress(){
+        return p.variables[var].Equals(val)?1:0;
+    }
+    public override void process(){
+        p.variables[var] = val;
+    }
+}
+public class ConditionStep : SequenceStep{
+    public String conditionVar;
+    public object conditionVal;
+    public SequenceStep step = null;
+    public Program p;
+    public bool conditionMet = false;
+    public ConditionStep(Program p, String var, object value){
+        this.p = p;
+        this.conditionVar = var;
+        this.conditionVal = value;
     }
     public override float getProgress(){
         if(!conditionMet)return 1;
-        return thenStep.getProgress();
+        return step.getProgress();
     }
     public override void start(){
-        conditionMet = or?false:true;
-        foreach(SequenceStep step in conditions){
-            bool fin = step.isFinished();
-            if(or)conditionMet |= fin;
-            else conditionMet &= fin;
-        }
-        if(inverted)conditionMet = !conditionMet;
-        if(conditionMet)thenStep.start();
+        conditionMet = p.variables[conditionVar].Equals(conditionVal);
+        if(conditionMet)step.start();
     }
     public override void process(){
-        if(conditionMet)thenStep.process();
+        p.Echo("Condition "+conditionVar+"=="+conditionVal+": "+(conditionMet?"Met":"Not Met"));
+        if(conditionMet)step.process();
     }
     public override void finish(){
-        if(conditionMet)thenStep.finish();
+        if(conditionMet)step.finish();
     }
 }
 public class RotorSequenceStep : SequenceStep{
