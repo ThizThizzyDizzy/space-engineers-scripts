@@ -694,7 +694,7 @@ public class InventoryContainer{
         double averageDiff = 0;
         foreach(double d in diffs)averageDiff+=d;
         averageDiff/=diffs.Count;
-        rateT = averageDiff*10;
+        rateT = averageDiff*6;
         last = fillT;
     }
     public void search(IMyCubeGrid grid, String type){
