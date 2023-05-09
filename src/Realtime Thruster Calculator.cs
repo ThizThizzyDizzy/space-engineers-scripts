@@ -673,9 +673,9 @@ public class InventoryContainer{
     Program p;
     public double rateT = 0;
     String type = "";
-    public int timeout = 60;
+    public int interval = 30;
     public double last = -1;
-    public int time = 0;
+    public List<double> diffs = new List<double>();
     public InventoryContainer(Program p, String type){
         this.p = p;
         this.type = type;
@@ -686,15 +686,16 @@ public class InventoryContainer{
         search(p.Me.CubeGrid, type);
     }
     public void tick(){
-        time++;
         double fillT = getFillLevelI();
         if(last==-1)last = fillT;
-        if(fillT!=last||time>=timeout){
-            double diffT = fillT-last;
-            rateT = diffT*6/time;
-            time = 0;
-            last = fillT;
-        }
+        double diffT = fillT-last;
+        diffs.Add(diffT);
+        if(diffs.Count>interval)diffs.RemoveAt(0);
+        double averageDiff = 0;
+        foreach(double d in diffs)averageDiff+=d;
+        averageDiff/=diffs.Count;
+        rateT = averageDiff*10;
+        last = fillT;
     }
     public void search(IMyCubeGrid grid, String type){
         List<IMyTerminalBlock> lst = new List<IMyTerminalBlock>();
