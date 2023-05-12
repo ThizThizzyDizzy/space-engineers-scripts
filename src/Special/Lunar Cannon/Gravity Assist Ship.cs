@@ -10,8 +10,16 @@ double seaLevelElevation;
 double surfaceElevation;
 ThrusterConfiguration thrusters;
 IMyShipController cockpit;
+IMyBroadcastListener listener;
+String igcTag = "Lunar Gravity Assist";
+Vector3 homePos = new Vector3(14334.5f, 131784.8f, -105530.2f);
+Vector3 dockPos = new Vector3(14336.24f, 131845.2f, -105625.4f);
+Vector3 targetPosition;
+float speedLimit = 100;
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
+    targetPosition = homePos;
+    listener = IGC.RegisterBroadcastListener(igcTag);
     List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>();
 
     GridTerminalSystem.GetBlocks(blocks);
@@ -39,7 +47,18 @@ public Program(){
         }
     }
 }
-public void Main(String arg){
+public void Main(String arg, UpdateType source){
+    if(arg=="Home")targetPosition = homePos;
+    if(arg=="Dock")targetPosition = dockPos;
+    if(arg=="Stop")speedLimit = 0;
+    if((source & UpdateType.IGC) > 0 && listener.HasPendingMessage){
+        MyIGCMessage message = listener.AcceptMessage();
+        if(message.Tag==igcTag){
+            Vector3 targetPos = (Vector3)message.Data;
+            if(targetPos==Vector3.Zero)targetPosition = homePos;
+            else targetPosition = targetPos;
+        }
+    }
     naturalGravity = cockpit.GetNaturalGravity();
     artificialGravity = cockpit.GetArtificialGravity();
     gravity = cockpit.GetTotalGravity();
@@ -49,11 +68,26 @@ public void Main(String arg){
     cockpit.TryGetPlanetPosition(out planetPosition);
     cockpit.TryGetPlanetElevation(MyPlanetElevation.Sealevel, out seaLevelElevation);
     cockpit.TryGetPlanetElevation(MyPlanetElevation.Surface, out surfaceElevation);
+    Echo("Address: "+IGC.Me.ToString());
     thrusters.refresh();
+    
     Vector3 targetVelocity = Vector3.Zero;
-    Vector3 currentVelocity = Vector3.TransformNormal(velocities.LinearVelocity.Normalized(), Matrix.Transpose(cockpit.WorldMatrix)).Normalized()*(float)velocities.LinearVelocity.Length();
-    Vector3 localGravity = Vector3.TransformNormal(naturalGravity.Normalized(), Matrix.Transpose(cockpit.WorldMatrix)).Normalized()*(float)naturalGravity.Length();
-    thrusters.setThrustForces((currentVelocity+localGravity-targetVelocity)*mass.TotalMass);
+
+    Vector3 currentPos = cockpit.GetPosition();
+    targetVelocity = targetPosition-currentPos;
+    float dist = targetVelocity.Length();
+    float maxSpeed = (float)Math.Max(0.1, Math.Min(speedLimit,Math.Pow(dist, 0.5)-1));
+    Echo("Distance to target: "+dist);
+    Echo("Target Speed: "+maxSpeed);
+    Echo("Pos: "+currentPos.ToString());
+    targetVelocity = targetVelocity.Normalized()*maxSpeed;
+    Echo("Target Vel: "+targetVelocity.ToString());
+
+    Vector3 total = velocities.LinearVelocity+naturalGravity-targetVelocity;
+
+    Vector3 local = Vector3.TransformNormal(total.Normalized(), Matrix.Transpose(cockpit.WorldMatrix)).Normalized()*(float)total.Length();
+    Echo("Local Thrust: "+local.ToString());
+    thrusters.setThrustForces(local*mass.TotalMass);
 }
 public class ThrusterConfiguration{
     public IMyShipController cockpit;
