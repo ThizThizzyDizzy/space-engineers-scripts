@@ -50,7 +50,10 @@ public void Main(String arg){
     cockpit.TryGetPlanetElevation(MyPlanetElevation.Sealevel, out seaLevelElevation);
     cockpit.TryGetPlanetElevation(MyPlanetElevation.Surface, out surfaceElevation);
     thrusters.refresh();
-    thrusters.setThrustForces(Vector3.TransformNormal(naturalGravity.Normalized(), Matrix.Transpose(cockpit.WorldMatrix)).Normalized()*(float)(naturalGravity.Length()*mass.TotalMass));
+    Vector3 targetVelocity = Vector3.Zero;
+    Vector3 currentVelocity = Vector3.TransformNormal(velocities.LinearVelocity.Normalized(), Matrix.Transpose(cockpit.WorldMatrix)).Normalized()*(float)velocities.LinearVelocity.Length();
+    Vector3 localGravity = Vector3.TransformNormal(naturalGravity.Normalized(), Matrix.Transpose(cockpit.WorldMatrix)).Normalized()*(float)naturalGravity.Length();
+    thrusters.setThrustForces((currentVelocity+localGravity-targetVelocity)*mass.TotalMass);
 }
 public class ThrusterConfiguration{
     public IMyShipController cockpit;
