@@ -1,4 +1,5 @@
 public List<Sequence> sequences = new List<Sequence>();
+public List<Sequence> removeSequences = new List<Sequence>();
 public Sequence currentSequence;
 public bool useCustomData = true;
 public int initialize = 0;
@@ -108,6 +109,9 @@ public void endParallel(){
         ((ParallelStep)last).building = false;
     }
 }
+public void endTempSequence(){
+    addSequenceStep(new RemoveSequenceStep(this, currentSequence));
+}
 public void addSequenceStep(SequenceStep step){
     if(currentSequence.steps.Count==0){
         currentSequence.steps.Add(step);
@@ -166,6 +170,10 @@ public void Main(String arg){
             Echo("Started Sequence "+arg);
         }
     }
+    foreach(Sequence s in removeSequences){
+        sequences.Remove(s);
+    }
+    removeSequences.Clear();
 }
 public class Sequence : SequenceStep{
     public new float tolerance = 0.01f;
@@ -523,6 +531,21 @@ public class RepeatStep : SequenceStep{
         if(sequence.breakRepeat)return;
         sequence.step = 0;
         sequence.start();
+    }
+    public override void process(){}
+}
+public class RemoveSequenceStep : SequenceStep{
+    public Program p;
+    public Sequence sequence;
+    public RemoveSequenceStep(Program p, Sequence sequence){
+        this.p = p;
+        this.sequence = sequence;
+    }
+    public override float getProgress(){
+        return 1;
+    }
+    public override void start(){
+        p.removeSequences.Add(sequence);
     }
     public override void process(){}
 }

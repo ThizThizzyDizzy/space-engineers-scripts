@@ -248,7 +248,7 @@ public void endParallel(){
     }
 }
 public void endTempSequence(){
-    addSequenceStep(new EndTempStep(this, currentSequence));
+    addSequenceStep(new RemoveSequenceStep(this, currentSequence));
 }
 public void addSequenceStep(SequenceStep step){
     if(currentSequence.steps.Count==0){
@@ -673,10 +673,10 @@ public class RepeatStep : SequenceStep{
     }
     public override void process(){}
 }
-public class EndTempStep : SequenceStep{
+public class RemoveSequenceStep : SequenceStep{
     public Program p;
     public Sequence sequence;
-    public EndTempStep(Program p, Sequence sequence){
+    public RemoveSequenceStep(Program p, Sequence sequence){
         this.p = p;
         this.sequence = sequence;
     }
