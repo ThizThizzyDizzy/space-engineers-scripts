@@ -6,7 +6,7 @@ public bool useCustomData = true;
 public int initialize = 0;
 public ConditionStep currentCondition;
 public Dictionary<String, object> variables = new Dictionary<String, object>();
-public Vector2 earthCenter = Vector2.Zero;
+public Vector2 earthCenter = new Vector2(4.666443f, 4.432678f);
 public Vector2 searchedPosition = Vector2.Zero;
 public int searchStep = 0;
 public int searchSubstep = 0;
@@ -16,18 +16,80 @@ public Vector3 vec_Xy;
 public Vector3 vec_XY;
 public Vector3 vec_xY;
 public IMyShipController controller;
+IMyBroadcastListener listener;
+String igcTagAssist = "Lunar Gravity Assist";
+String igcTagCannon = "Lunar Cannon";
+public float speedLimit = 100f; //this script will do intended payloads only, no free rides >:[
+public List<GravityField> gravityGenerators = new List<GravityField>();
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
     variables["Done"] = true;
+    variables["Aligned"] = false;
+    variables["Ready"] = false;
     controller = findBlock("Lunar Remote") as IMyShipController;
+    listener = IGC.RegisterBroadcastListener(igcTagCannon);
 }
 public bool Init(int i) {
-    return false;
-}
-public void Run(){
-    if(earthCenter==Vector2.Zero&&searchPosition("Earth", new Vector3(0.5f, 0.5f, 0.5f))){
-        earthCenter = searchedPosition;
+    if(i==0){
+        newSequence("Zoom");
+        addParallel();
+        addToggle("Gravity Generator 1A", true);
+        addToggle("Gravity Generator 1B", true);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 2A", true);
+        addToggle("Gravity Generator 2B", true);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 3A", true);
+        addToggle("Gravity Generator 3B", true);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 4A", true);
+        addToggle("Gravity Generator 4B", true);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 5A", true);
+        addToggle("Gravity Generator 5B", true);
+        endParallel();
+        addDelay(300);
+        addParallel();
+        addToggle("Gravity Generator 1A", false);
+        addToggle("Gravity Generator 1B", false);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 2A", false);
+        addToggle("Gravity Generator 2B", false);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 3A", false);
+        addToggle("Gravity Generator 3B", false);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 4A", false);
+        addToggle("Gravity Generator 4B", false);
+        endParallel();
+        addParallel();
+        addToggle("Gravity Generator 5A", false);
+        addToggle("Gravity Generator 5B", false);
+        endParallel();
+        return true;
+    }
+    if(i==1){
+        newSequence("Launch");
+        setVar("Ready", false);
+        waitVar("Aligned", true);
+        addSequenceStep(new GravityAssistCalculationStep(this));
+        waitVar("Ready", true);
+        addDelay(300);
+        runSequence("Zoom");
+        addDelay(600);
+        addSequenceStep(new ResetGravityAssistStep(this));
+        return true;
+    }
+    if(i==2){
         newSequence("GOTO EARTH");
+        setVar("Aligned", false);
         addParallel();
         addPiston("Piston X1", earthCenter.X, 0.1f, 200);
         addPiston("Piston X2", earthCenter.X, 0.1f, 200);
@@ -35,8 +97,27 @@ public void Run(){
         addPiston("Piston Y2", earthCenter.Y, 0.1f, 200);
         endParallel();
         setVar("Done", true);
-        endTempSequence();
+        setVar("Aligned", true);
+        newSequence("GOTO CENTER");
+        setVar("Aligned", false);
+        addParallel();
+        addPiston("Piston X1", 5f, 0.1f, 200);
+        addPiston("Piston X2", 5f, 0.1f, 200);
+        addPiston("Piston Y1", 5f, 0.1f, 200);
+        addPiston("Piston Y2", 5f, 0.1f, 200);
+        endParallel();
+        setVar("Done", true);
+        setVar("Aligned", true);
+        return true;
     }
+    return false;
+}
+public void Run(){
+    /*
+    if(earthCenter==Vector2.Zero&&searchPosition("Earth", new Vector3(0.5f, 0.5f, 0.5f))){
+        earthCenter = searchedPosition;
+    }*/
+    //Echo("Earth: "+earthCenter.ToString());
 }
 public bool searchPosition(String name, Vector3 target){
     if(positionFound){
@@ -54,6 +135,7 @@ public bool searchPosition(String name, Vector3 target){
         case 0:
             newSequence("Search xy ("+searchStep+")");
             addParallel();
+            setVar("Aligned", false);
             addPiston("Piston X1", searchedPosition.X-variance/2, variance/2, easing);
             addPiston("Piston X2", searchedPosition.X-variance/2, variance/2, easing);
             addPiston("Piston Y1", searchedPosition.Y-variance/2, variance/2, easing);
@@ -69,6 +151,7 @@ public bool searchPosition(String name, Vector3 target){
             vec_xy = getVector();
             newSequence("Search Xy ("+searchStep+")");
             addParallel();
+            setVar("Aligned", false);
             addPiston("Piston X1", searchedPosition.X+variance/2, variance/2, easing);
             addPiston("Piston X2", searchedPosition.X+variance/2, variance/2, easing);
             addPiston("Piston Y1", searchedPosition.Y-variance/2, variance/2, easing);
@@ -84,6 +167,7 @@ public bool searchPosition(String name, Vector3 target){
             vec_Xy = getVector();
             newSequence("Search XY ("+searchStep+")");
             addParallel();
+            setVar("Aligned", false);
             addPiston("Piston X1", searchedPosition.X+variance/2, variance/2, easing);
             addPiston("Piston X2", searchedPosition.X+variance/2, variance/2, easing);
             addPiston("Piston Y1", searchedPosition.Y+variance/2, variance/2, easing);
@@ -99,6 +183,7 @@ public bool searchPosition(String name, Vector3 target){
             vec_XY = getVector();
             newSequence("Search xY ("+searchStep+")");
             addParallel();
+            setVar("Aligned", false);
             addPiston("Piston X1", searchedPosition.X-variance/2, variance/2, easing);
             addPiston("Piston X2", searchedPosition.X-variance/2, variance/2, easing);
             addPiston("Piston Y1", searchedPosition.Y+variance/2, variance/2, easing);
@@ -214,6 +299,10 @@ public void setVar(String var, object val)
 {
     addSequenceStep(new SetVarStep(this, var, val));
 }
+public void waitVar(String var, object val)
+{
+    addSequenceStep(new WaitVarStep(this, var, val));
+}
 public void setConditional(String var){
     setConditional(var, true);
 }
@@ -276,6 +365,12 @@ public void addSequenceStep(SequenceStep step){
     }else currentSequence.steps.Add(step);
 }
 public void Main(String arg){
+    if(listener.HasPendingMessage){
+        MyIGCMessage message = listener.AcceptMessage();
+        if(message.Tag==igcTagCannon){
+            variables[message.Data.ToString()] = true;
+        }
+    }
     if(Init(initialize)){
         initialize++;
         Echo("Initializing... ("+initialize+")");
@@ -361,6 +456,172 @@ public abstract class SequenceStep{
     public abstract void process();
     public virtual void finish(){}
 }
+public class GravityAssistCalculationStep : SequenceStep{
+    float timeScale = 1/60f;
+    Vector3 pos = Vector3.Zero;
+    Vector3 vel = Vector3.Zero;
+    float startingAlt = 0;
+    float alt = 0;
+    Planet origin;
+    Program p;
+    public List<Planet> planets = new List<Planet>();
+    public GravityAssistCalculationStep(Program p){
+        this.p = p;
+        planets.Add(new Planet("Earth", new Vector3(.5f,.5f,.5f), 60000, 9.81f, 67200, 0, 14400));
+        planets.Add(new Planet("Mars", new Vector3(1031072.5f, 131072.5f, 1631072.5f), 60000, 8.829f, 67200, 0, 14400));
+        planets.Add(new Planet("Alien", new Vector3(131072.5f, 131072.5f, 5731072.5f), 60000, 10.791f, 67200, 2400, 14400));
+        planets.Add(new Planet("Moon", new Vector3(16384.5f, 136384.5f, -113615.5f), 9500, 2.4525f, 9785, 0, 0));
+        planets.Add(new Planet("Europa", new Vector3(916384.5f, 16384.5f, 1616384.5f), 9500, 2.4525f, 10640, 0, 1140));
+        planets.Add(new Planet("Titan", new Vector3(36384.5f, 226384.5f, 5796384.5f), 9500, 2.4525f, 10640, 0, 570));
+        planets.Add(new Planet("Triton", new Vector3(-284463.5f, -2434463.5f, 365536.5f), 40000, 9.81f, 44800, 0, 2656));
+    }
+    public override float getProgress(){
+        return (alt-startingAlt)/800;
+    }
+    float gridMass, gridArtificialMass;
+    public override void start(){
+        gridMass = gridArtificialMass = -1;
+        p.Me.CustomData = "";
+        vel = Vector3.Zero;
+        pos = p.controller.GetPosition()+p.controller.WorldMatrix.Forward*2.5f;
+        p.gravityGenerators.Clear();
+        p.addGravityGen(p.findBlock("Gravity Generator 1A") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 1B") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 2A") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 2B") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 3A") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 3B") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 4A") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 4B") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 5A") as IMyGravityGenerator);
+        p.addGravityGen(p.findBlock("Gravity Generator 5B") as IMyGravityGenerator);
+        origin = null;
+        float dist = -1;
+        foreach(Planet pl in planets){
+            if(origin==null||Vector3.Distance(pos, pl.center)<dist){
+                origin = pl;
+                dist = Vector3.Distance(pos, pl.center);
+            }
+        }
+        steps = 0;
+        startingAlt = dist;
+    }
+    int steps = 0;
+    public override void process(){
+        if(p.Me.CustomData==""&&gridMass==-1){
+            p.Echo("Please enter Grid Mass and Artificial Mass in Custom Data");
+            return;
+        }else if(gridMass==-1){
+            String[] strs = p.Me.CustomData.Split(' ');
+            gridMass = Single.Parse(strs[0]);
+            gridArtificialMass = Single.Parse(strs[1]);
+            p.Me.CustomData = "";
+        }
+        steps++;
+        pos+=vel*timeScale;
+        if(vel.Length()>p.speedLimit)vel = vel.Normalized()*p.speedLimit;
+        float artificialGravityMult = 1f;
+        foreach(Planet pl in planets){
+            Vector3 grav = pl.getGravityAt(pos);
+            if(grav.Length()>0){
+                artificialGravityMult = Math.Min(artificialGravityMult, 1-2*(pl.getGravityAt(Vector3.Distance(pos, pl.center))/9.81f));
+            }
+            vel+=grav*timeScale;//*2 for players, but we don't care about players; this isn't an amusement park ride >:[
+        }
+        foreach(GravityField g in p.gravityGenerators){
+            if(Vector3.Distance(pos, g.pos)<g.radius){//TODO assumes spherical area... which is not correct
+                vel+=g.gravity*timeScale*(gridArtificialMass/gridMass)*artificialGravityMult;
+            }
+        }
+        alt = Vector3.Distance(pos, origin.center);
+        p.Echo("Calculating Trajectory... (Step "+steps+", "+Math.Round(alt-startingAlt)+"m)");
+    }
+    public override void finish(){
+        if(alt<=startingAlt){//don't smash the gravity assist ship into the ground plz x.x
+            p.Echo("INVALID TRAJECTORY");
+            return;
+        }
+        Vector3 facing = p.getVector();
+        Vector3 adjustment = new Vector3(facing.Y, facing.Z, facing.X);//rotated 90 degrees, don't care in which direction
+        p.IGC.SendBroadcastMessage(p.igcTagAssist, pos+adjustment*10);//10 meters off to the side, just hope it's enough to avoid collision lol
+    }
+}
+public void addGravityGen(IMyGravityGenerator gen){
+    gravityGenerators.Add(new GravityField(gen.GetPosition(), 80, gen.GravityAcceleration*gen.WorldMatrix.Down));//actually 75, but it makes up for treating it as spherical... maybe?
+}
+public class ManualGravityAssistAdjustmentStep : SequenceStep{
+    public Program p;
+    List<Vector3> vecs = new List<Vector3>();
+    List<Vector3> pvecs = new List<Vector3>();
+    public ManualGravityAssistAdjustmentStep(Program p){
+        this.p = p;
+    }
+    public override float getProgress(){
+        return p.Me.CustomData==""?0:1;
+    }
+    public override void start(){
+        p.Me.CustomData = "";
+    }
+    public override void process(){
+        Vector3 vec = p.getVector();
+        vecs.Add(vec);
+        pvecs.Add(p.controller.GetPosition());
+        if(vecs.Count>100)vecs.RemoveAt(0);
+        if(pvecs.Count>100)pvecs.RemoveAt(0);
+        Vector3 average = Vector3.Zero;
+        Vector3 paverage = Vector3.Zero;
+        foreach(Vector3 v in vecs){
+            average+=v;
+        }
+        foreach(Vector3 v in pvecs){
+            paverage+=v;
+        }
+        average/=vecs.Count;
+        paverage/=pvecs.Count;
+        p.Echo("BASE Position:");
+        p.Echo("X "+paverage.X);
+        p.Echo("Y "+paverage.Y);
+        p.Echo("Z "+paverage.Z);
+        p.Echo("Target Aligned:");
+        p.Echo("X "+average.X);
+        p.Echo("Y "+average.Y);
+        p.Echo("Z "+average.Z);
+        p.Echo("Waiting for Gravity Assist Adjustment...\n(Paste into Custom Data)");
+    }
+}
+public class ManualCallGravityAssistStep : SequenceStep{
+    bool done = false;
+    public Program p;
+    public ManualCallGravityAssistStep(Program p){
+        this.p = p;
+    }
+    public override float getProgress(){
+        return done?1:0;
+    }
+    public override void process(){
+        Vector3 facing = p.getVector();
+        //Vector3 pos = p.controller.GetPosition()+facing*1000;
+        String[] s = p.Me.CustomData.Split(' ');
+        Vector3 pos = new Vector3(Single.Parse(s[0]), Single.Parse(s[1]), Single.Parse(s[2]));
+        Vector3 adjustment = new Vector3(facing.Y, facing.Z, facing.X);//rotated 90 degrees, don't care in which direction
+        p.IGC.SendBroadcastMessage(p.igcTagAssist, pos+adjustment*10);//10 meters off to the side, just hope it's enough lol
+        done = true;
+    }
+}
+public class ResetGravityAssistStep : SequenceStep{
+    bool done = false;
+    public Program p;
+    public ResetGravityAssistStep(Program p){
+        this.p = p;
+    }
+    public override float getProgress(){
+        return done?1:0;
+    }
+    public override void process(){
+        p.IGC.SendBroadcastMessage(p.igcTagAssist, Vector3.Zero);
+        done = true;
+    }
+}
 public class ParallelStep : SequenceStep{
     public List<SequenceStep> substeps = new List<SequenceStep>();
     public bool building = true;
@@ -409,6 +670,22 @@ public class SetVarStep : SequenceStep{
         p.variables[var] = val;
     }
 }
+public class WaitVarStep : SequenceStep{
+    public String var;
+    public object val;
+    public Program p;
+    public WaitVarStep(Program p, String var, object value){
+        this.p = p;
+        this.var = var;
+        this.val = value;
+    }
+    public override float getProgress(){
+        return p.variables[var].Equals(val)?1:0;
+    }
+    public override void process(){
+        p.Echo("Waiting for "+var+"...");
+    }
+}
 public class ConditionStep : SequenceStep{
     public String conditionVar;
     public object conditionVal;
@@ -437,7 +714,7 @@ public class ConditionStep : SequenceStep{
     }
 }
 public class RotorSequenceStep : SequenceStep{
-    private float toleran = 0.001f;
+    public float toleran = 0.001f;
     public IMyMotorStator rotor;
     public float target;
     public float vel;
@@ -480,7 +757,7 @@ public class RotorSequenceStep : SequenceStep{
 }
 public class RotorStopSequenceStep : SequenceStep
 {
-    private float toleran = 0.0001f;
+    public float toleran = 0.0001f;
     public IMyMotorStator rotor;
     public Program p;
     public float startAngle, lastAngle;
@@ -520,7 +797,7 @@ public class RotorStopSequenceStep : SequenceStep
     }
 }
 public class PistonSequenceStep : SequenceStep{
-    private float toleran = 0.001f;
+    public float toleran = 0.001f;
     public IMyPistonBase piston;
     public float target;
     public float speed;
@@ -734,4 +1011,41 @@ public float easeCurve(float x1, float x2, float ease, float x, float goodMin, f
 }
 public bool checkVar(String var, object val){
     return variables[var].Equals(val);
+}
+public class Planet{
+    public String name;
+    public Vector3 center;
+    public float radius;
+    public float gravity;
+    public float hillRadius;
+    public float lowerAtmosphere;
+    public float upperAtmosphere;
+    public Planet(String name, Vector3 pos, float radius, float gravity, float hillRadius, float lowerAtmosphere, float upperAtmosphere){
+        this.name = name;
+        this.center = pos;
+        this.radius = radius;
+        this.gravity = gravity;
+        this.hillRadius = hillRadius;
+        this.lowerAtmosphere = lowerAtmosphere;
+        this.upperAtmosphere = upperAtmosphere;
+    }
+    public Vector3 getGravityAt(Vector3 pos){
+        float grav = getGravityAt(Vector3.Distance(pos,this.center));
+        Vector3 direction = center-pos;
+        return direction.Normalized()*grav;
+    }
+    public float getGravityAt(float distanceFromCenter){
+        double grav = Math.Min(gravity, gravity*Math.Pow(distanceFromCenter/hillRadius,-7));
+        return (float)(grav/9.81f>=0.05?grav:0);
+    }
+}
+public class GravityField{
+    public Vector3 pos;
+    public float radius;
+    public Vector3 gravity;
+    public GravityField(Vector3 pos, float radius, Vector3 gravity){
+        this.pos = pos;
+        this.radius = radius;
+        this.gravity = gravity;
+    }
 }

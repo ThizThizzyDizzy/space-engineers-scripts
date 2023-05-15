@@ -76,6 +76,10 @@ public void setVar(String var, object val)
 {
     addSequenceStep(new SetVarStep(this, var, val));
 }
+public void waitVar(String var, object val)
+{
+    addSequenceStep(new WaitVarStep(this, var, val));
+}
 public void setConditional(String var){
     setConditional(var, true);
 }
@@ -268,6 +272,22 @@ public class SetVarStep : SequenceStep{
     }
     public override void process(){
         p.variables[var] = val;
+    }
+}
+public class WaitVarStep : SequenceStep{
+    public String var;
+    public object val;
+    public Program p;
+    public WaitVarStep(Program p, String var, object value){
+        this.p = p;
+        this.var = var;
+        this.val = value;
+    }
+    public override float getProgress(){
+        return p.variables[var].Equals(val)?1:0;
+    }
+    public override void process(){
+        Echo("Waiting for "+var+"...");
     }
 }
 public class ConditionStep : SequenceStep{
