@@ -7,6 +7,7 @@ public int initialize = 0;
 public ConditionStep currentCondition;
 public Dictionary<String, object> variables = new Dictionary<String, object>();
 public Vector2 earthCenter = new Vector2(4.666443f, 4.432678f);
+public Vector2 vertical = new Vector2(6.875f, 6.875f);
 public Vector2 searchedPosition = Vector2.Zero;
 public int searchStep = 0;
 public int searchSubstep = 0;
@@ -73,6 +74,7 @@ public bool Init(int i) {
         addToggle("Gravity Generator 5A", false);
         addToggle("Gravity Generator 5B", false);
         endParallel();
+        addToggle("Lunar Cannon Maglock", false);
         return true;
     }
     if(i==1){
@@ -101,23 +103,187 @@ public bool Init(int i) {
         newSequence("GOTO CENTER");
         setVar("Aligned", false);
         addParallel();
-        addPiston("Piston X1", 5f, 0.1f, 200);
-        addPiston("Piston X2", 5f, 0.1f, 200);
-        addPiston("Piston Y1", 5f, 0.1f, 200);
-        addPiston("Piston Y2", 5f, 0.1f, 200);
+        addPiston("Piston X1", vertical.X, 0.1f, 200);
+        addPiston("Piston X2", vertical.X, 0.1f, 200);
+        addPiston("Piston Y1", vertical.Y, 0.1f, 200);
+        addPiston("Piston Y2", vertical.Y, 0.1f, 200);
         endParallel();
         setVar("Done", true);
         setVar("Aligned", true);
         return true;
     }
+    if(i==3){
+        newSequence("Ready Payload");
+        runSequence("GOTO CENTER");
+        //bring the payload arm down to pick up the payload
+        addRotor("Payload Arm Hinge 2", -90, 1f, 2);
+        addRotor("Payload Arm Hinge 3", 0, 1f, 2);
+        addParallel();
+        addPiston("Payload Arm Piston 4", 5, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 5, 0.8f, 0.5f);
+        addRotor("Payload Arm Rotor", 180, 15, 2);
+        addRotor("Payload Storage Rotor", 180, 2, 10);
+        endParallel();
+        addLandingGear("Payload Arm Maglock", true);
+        addToggle("Payload Storage Merge Block", false);
+        addParallel();
+        addPiston("Payload Arm Piston 4", 2.5f, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 2.5f, 0.8f, 0.5f);
+        endParallel();
+        addRotor("Payload Arm Rotor", 90, 2, 30);
+        addParallel();
+        addPiston("Payload Arm Piston 4", 0, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 0, 0.8f, 0.5f);
+        addHinge("Payload Arm Hinge 3", 60, 1f, 2);
+        endParallel();
+        addToggle("Payload Storage Merge Block", true);
+        //open door
+        addParallel();
+        addHinge("Lunar Payload Door 1", -10f, 10);
+        addHinge("Lunar Payload Door 2", -10f, 10);
+        addHinge("Lunar Payload Door 3", -10f, 10);
+        addHinge("Lunar Payload Door 4", -10f, 10);
+        addHinge("Lunar Payload Door 5", -10f, 10);
+        addDoors("Payload Arm Door", true);
+        endParallel();
+        //arm up
+        addRotor("Payload Arm Hinge 2", 0, 1f, 2);
+        addHinge("Payload Arm Hinge 1", 60, 0.5f, 2);
+        addRotor("Payload Arm Rotor", 270, 2, 10);
+        addParallel();
+        addHinge("Payload Arm Hinge 1", 90, 0.5f, 2);
+        addPiston("Payload Arm Piston 1", 8.5f, 2f, 2);
+        addPiston("Payload Arm Piston 2", 8.5f, 2f, 2);
+        addPiston("Payload Arm Piston 3", 8.5f, 2f, 2);
+        addHinge("Payload Arm Hinge 2", 90, 1f, 2);
+        addHinge("Payload Arm Hinge 3", 0, 1f, 2);
+        endParallel();
+        addParallel();
+        addPiston("Payload Arm Piston 4", 8, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 8, 0.8f, 0.5f);
+        endParallel();
+        addParallel();
+        addPiston("Payload Arm Piston 1", 6.85f, 0.4f, 0.2f);
+        addPiston("Payload Arm Piston 2", 6.85f, 0.4f, 0.2f);
+        addPiston("Payload Arm Piston 3", 6.85f, 0.4f, 0.2f);
+        endParallel();
+        //release payload
+        addLandingGear("Lunar Cannon Maglock", true);
+        addLandingGear("Payload Arm Maglock", false);
+        //arm down
+        addParallel();
+        addPiston("Payload Arm Piston 4", 0, 2f, 1);
+        addPiston("Payload Arm Piston 5", 0, 2f, 1);
+        addHinge("Payload Arm Hinge 2", 0, 1.5f, 3);
+        addHinge("Payload Arm Hinge 3", 0, 1f, 2);
+        endParallel();
+        addParallel();
+        addRotor("Payload Arm Rotor", 90, 15f, 2);
+        addPiston("Payload Arm Piston 1", 0, 2f, 0.8f);
+        addPiston("Payload Arm Piston 2", 0, 2f, 0.8f);
+        addPiston("Payload Arm Piston 3", 0, 2f, 0.8f);
+        endParallel();
+        addHinge("Payload Arm Hinge 1", 0, 1f, 1);
+        //close door
+        addParallel();
+        addHinge("Lunar Payload Door 1", 90f, 10);
+        addHinge("Lunar Payload Door 2", 90f, 10);
+        addHinge("Lunar Payload Door 3", 90f, 10);
+        addHinge("Lunar Payload Door 4", 90f, 10);
+        addHinge("Lunar Payload Door 5", 90f, 10);
+        addDoors("Payload Arm Door", false);
+        endParallel();
+        return true;
+    }
+    if(i==4){
+        newSequence("Stow Payload");
+        runSequence("GOTO CENTER");
+        //open door
+        addParallel();
+        addHinge("Lunar Payload Door 1", -10f, 10);
+        addHinge("Lunar Payload Door 2", -10f, 10);
+        addHinge("Lunar Payload Door 3", -10f, 10);
+        addHinge("Lunar Payload Door 4", -10f, 10);
+        addHinge("Lunar Payload Door 5", -10f, 10);
+        addDoors("Payload Arm Door", true);
+        endParallel();
+        //arm up
+        addHinge("Payload Arm Hinge 1", 90, 1, 1);
+        addParallel();
+        addPiston("Payload Arm Piston 1", 6.85f, 2f, 2);
+        addPiston("Payload Arm Piston 2", 6.85f, 2f, 2);
+        addPiston("Payload Arm Piston 3", 6.85f, 2f, 2);
+        addRotor("Payload Arm Rotor", 270, 15f, 5);
+        addHinge("Payload Arm Hinge 2", 90, 1.5f, 4);
+        addHinge("Payload Arm Hinge 3", 0, 1f, 2);
+        addPiston("Payload Arm Piston 4", 8, 0.8f, 0.6f);
+        addPiston("Payload Arm Piston 5", 8, 0.8f, 0.6f);
+        endParallel();
+        //Grab payload
+        addLandingGear("Payload Arm Maglock", true);
+        addLandingGear("Lunar Cannon Maglock", false);
+        //arm down
+        addParallel();
+        addPiston("Payload Arm Piston 1", 8.5f, 0.4f, 0.2f);
+        addPiston("Payload Arm Piston 2", 8.5f, 0.4f, 0.2f);
+        addPiston("Payload Arm Piston 3", 8.5f, 0.4f, 0.2f);
+        endParallel();
+        addParallel();
+        addPiston("Payload Arm Piston 4", 0, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 0, 0.8f, 0.5f);
+        endParallel();
+        addParallel();
+        addHinge("Payload Arm Hinge 1", 90, 0.5f, 1.5f);
+        addPiston("Payload Arm Piston 1", 0, 2f, 2);
+        addPiston("Payload Arm Piston 2", 0, 2f, 2);
+        addPiston("Payload Arm Piston 3", 0, 2f, 2);
+        addHinge("Payload Arm Hinge 2", 0, 1f, 2);
+        addHinge("Payload Arm Hinge 3", 0, 1f, 2);
+        endParallel();
+        addParallel();
+        addRotor("Payload Arm Rotor", 90, 2, 10);
+        addHinge("Payload Arm Hinge 1", 0, 0.5f, 2);
+        addHinge("Payload Arm Hinge 3", 60, 1, 2);
+        endParallel();
+        addRotor("Payload Arm Hinge 2", -90, 1f, 2);
+        //close door
+        addParallel();
+        addHinge("Lunar Payload Door 1", 90f, 10);
+        addHinge("Lunar Payload Door 2", 90f, 10);
+        addHinge("Lunar Payload Door 3", 90f, 10);
+        addHinge("Lunar Payload Door 4", 90f, 10);
+        addHinge("Lunar Payload Door 5", 90f, 10);
+        addDoors("Payload Arm Door", false);
+        endParallel();
+        //bring the payload arm down to store the payload
+        addParallel();
+        addPiston("Payload Arm Piston 4", 2.5f, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 2.5f, 0.8f, 0.5f);
+        addHinge("Payload Arm Hinge 3", 0, 1, 2);
+        endParallel();
+        addRotor("Payload Arm Rotor", 180, 2, 30);
+        addParallel();
+        addPiston("Payload Arm Piston 4", 5f, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 5f, 0.8f, 0.5f);
+        addRotor("Payload Storage Rotor", 180, 2, 10);
+        endParallel();
+        addToggle("Payload Storage Merge Block", true);
+        addMerge("Payload Storage Merge Block");
+        addLandingGear("Payload Arm Maglock", false);
+        addParallel();
+        addPiston("Payload Arm Piston 4", 0, 0.8f, 0.5f);
+        addPiston("Payload Arm Piston 5", 0, 0.8f, 0.5f);
+        endParallel();
+        addRotor("Payload Arm Hinge 2", 0, 1f, 2);
+        return true;
+    }
     return false;
 }
 public void Run(){
-    /*
-    if(earthCenter==Vector2.Zero&&searchPosition("Earth", new Vector3(0.5f, 0.5f, 0.5f))){
-        earthCenter = searchedPosition;
-    }*/
-    //Echo("Earth: "+earthCenter.ToString());
+    // if(findCenter==Vector2.Zero&&searchPosition("Target", new Vector3(14280-2104, 131867-4517, -105618+7997))){
+    //     findCenter = searchedPosition;
+    // }
+    // Echo("Found: "+findCenter.ToString());
 }
 public bool searchPosition(String name, Vector3 target){
     if(positionFound){
@@ -283,11 +449,17 @@ public void addPiston(String block, float target, float speed, float easing){
 public void addDoor(String block, bool open){
     addSequenceStep(new DoorSequenceStep(this, block, open));
 }
+public void addDoors(String block, bool open){
+    addSequenceStep(new DoorsSequenceStep(this, block, open));
+}
 public void addMerge(String block){
     addSequenceStep(new MergeSequenceStep(this, block));
 }
 public void addConnector(String block, bool connect){
     addSequenceStep(new ConnectorSequenceStep(this, block, connect));
+}
+public void addLandingGear(String block, bool locked){
+    addSequenceStep(new LandingGearSequenceStep(this, block, locked));
 }
 public void addToggle(String block, bool enable){
     addSequenceStep(new BlockToggleSequenceStep(this, block, enable));
@@ -860,6 +1032,38 @@ public class DoorSequenceStep : SequenceStep{
         else door.CloseDoor();
     }
 }
+public class DoorsSequenceStep : SequenceStep{
+    public List<IMyDoor> doors = new List<IMyDoor>();
+    public bool open;
+    public Program p;
+    public DoorsSequenceStep(Program p, String name, bool open){
+        this.p = p;
+        foreach(IMyTerminalBlock block in p.findBlocks(name)){
+            doors.Add(block as IMyDoor);
+        }
+        this.open = open;
+    }
+    public override float getProgress(){//could do a real value but whatever
+        int progress = 0;
+        foreach(IMyDoor door in doors){
+            if(open){
+                if(door.Status==DoorStatus.Open)progress+=2;
+                if(door.Status==DoorStatus.Opening)progress++;
+            }else{
+                if(door.Status==DoorStatus.Closed)progress+=2;
+                if(door.Status==DoorStatus.Closing)progress++;
+            }
+        }
+        return doors.Count==0?0:progress/(doors.Count*2);
+    }
+    public override void process(){
+        foreach(IMyDoor door in doors){
+            p.Echo((p.useCustomData?door.CustomData:door.CustomName)+": "+door.Status.ToString());
+            if(open)door.OpenDoor();
+            else door.CloseDoor();
+        }
+    }
+}
 public class ConnectorSequenceStep : SequenceStep{
     public IMyShipConnector connector;
     public bool connect;
@@ -882,6 +1086,24 @@ public class ConnectorSequenceStep : SequenceStep{
         p.Echo((p.useCustomData?connector.CustomData:connector.CustomName)+": "+connector.Status.ToString());
         if(connect&&connector.Status==MyShipConnectorStatus.Connectable)connector.Connect();
         if(!connect)connector.Disconnect();
+    }
+}
+public class LandingGearSequenceStep : SequenceStep{
+    public IMyLandingGear gear;
+    public bool locked;
+    public Program p;
+    public LandingGearSequenceStep(Program p, String name, bool locked){
+        this.p = p;
+        gear = p.findBlock(name) as IMyLandingGear;
+        this.locked = locked;
+    }
+    public override float getProgress(){
+        return gear.IsLocked==locked?1:0;
+    }
+    public override void process(){
+        p.Echo((p.useCustomData?gear.CustomData:gear.CustomName)+": "+gear.IsLocked);
+        if(locked)gear.Lock();
+        else gear.Unlock();
     }
 }
 public class MergeSequenceStep : SequenceStep{
@@ -983,6 +1205,7 @@ public List<IMyTerminalBlock> findBlocks(String name){
     List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>();
     GridTerminalSystem.GetBlocks(blocks);
     foreach(IMyTerminalBlock b in blocks){
+        if(!b.IsFunctional)continue;
         if(useCustomData){
             if(name.Equals(b.CustomData))found.Add(b);
         }else{
@@ -1007,6 +1230,7 @@ public float easeCurve(float x1, float x2, float ease, float x, float goodMin, f
         else val = goodMin;
     }
     double final = Math.Max(Math.Max(minVal, eV1), Math.Max(eV2, val));
+    if(Double.IsNaN(final)||Double.IsInfinity(final))final = 0;//sanity sanity check
     return (float)Math.Max(-1, Math.Min(1, final));//sanity check
 }
 public bool checkVar(String var, object val){

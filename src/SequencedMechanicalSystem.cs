@@ -60,11 +60,17 @@ public void addPiston(String block, float target, float speed, float easing){
 public void addDoor(String block, bool open){
     addSequenceStep(new DoorSequenceStep(this, block, open));
 }
+public void addDoors(String block, bool open){
+    addSequenceStep(new DoorsSequenceStep(this, block, open));
+}
 public void addMerge(String block){
     addSequenceStep(new MergeSequenceStep(this, block));
 }
 public void addConnector(String block, bool connect){
     addSequenceStep(new ConnectorSequenceStep(this, block, connect));
+}
+public void addLandingGear(String block, bool lock){
+    addSequenceStep(new LandingGearSequenceStep(this, block, lock));
 }
 public void addToggle(String block, bool enable){
     addSequenceStep(new BlockToggleSequenceStep(this, block, enable));
@@ -287,7 +293,7 @@ public class WaitVarStep : SequenceStep{
         return p.variables[var].Equals(val)?1:0;
     }
     public override void process(){
-        Echo("Waiting for "+var+"...");
+        p.Echo("Waiting for "+var+"...");
     }
 }
 public class ConditionStep : SequenceStep{
@@ -464,6 +470,38 @@ public class DoorSequenceStep : SequenceStep{
         else door.CloseDoor();
     }
 }
+public class DoorsSequenceStep : SequenceStep{
+    public List<IMyDoor> doors = new List<IMyDoor>();
+    public bool open;
+    public Program p;
+    public DoorsSequenceStep(Program p, String name, bool open){
+        this.p = p;
+        foreach(IMyTerminalBlock block in p.findBlocks(name)){
+            doors.Add(block as IMyDoor);
+        }
+        this.open = open;
+    }
+    public override float getProgress(){//could do a real value but whatever
+        int progress = 0;
+        foreach(IMyDoor door in doors){
+            if(open){
+                if(door.Status==DoorStatus.Open)progress+=2;
+                if(door.Status==DoorStatus.Opening)progress++;
+            }else{
+                if(door.Status==DoorStatus.Closed)progress+=2;
+                if(door.Status==DoorStatus.Closing)progress++;
+            }
+        }
+        return doors.Count==0?0:progress/(doors.Count*2);
+    }
+    public override void process(){
+        foreach(IMyDoor door in doors){
+            p.Echo((p.useCustomData?door.CustomData:door.CustomName)+": "+door.Status.ToString());
+            if(open)door.OpenDoor();
+            else door.CloseDoor();
+        }
+    }
+}
 public class ConnectorSequenceStep : SequenceStep{
     public IMyShipConnector connector;
     public bool connect;
@@ -486,6 +524,24 @@ public class ConnectorSequenceStep : SequenceStep{
         p.Echo((p.useCustomData?connector.CustomData:connector.CustomName)+": "+connector.Status.ToString());
         if(connect&&connector.Status==MyShipConnectorStatus.Connectable)connector.Connect();
         if(!connect)connector.Disconnect();
+    }
+}
+public class LandingGearSequenceStep : SequenceStep{
+    public IMyLandingGear gear;
+    public bool lock;
+    public Program p;
+    public LandingGearSequenceStep(Program p, String name, bool lock){
+        this.p = p;
+        gear = p.findBlock(name) as IMyLandingGear;
+        this.lock = lock;
+    }
+    public override float getProgress(){
+        return gear.IsLocked==lock?1:0;
+    }
+    public override void process(){
+        p.Echo((p.useCustomData?gear.CustomData:gear.CustomName)+": "+gear.Locked);
+        if(lock)gear.Lock();
+        else gear.Unlock();
     }
 }
 public class MergeSequenceStep : SequenceStep{
@@ -611,5 +667,6 @@ public float easeCurve(float x1, float x2, float ease, float x, float goodMin, f
         else val = goodMin;
     }
     double final = Math.Max(Math.Max(minVal, eV1), Math.Max(eV2, val));
+    if(Double.IsNaN(final)||Double.IsInfinity(final))final = 0;//sanity sanity check
     return (float)Math.Max(-1, Math.Min(1, final));//sanity check
 }
