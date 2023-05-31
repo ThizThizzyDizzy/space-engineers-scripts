@@ -1,14 +1,189 @@
 public List<Sequence> sequences = new List<Sequence>();
 public List<Sequence> removeSequences = new List<Sequence>();
 public Sequence currentSequence;
-public bool useCustomData = true;
+public bool useCustomData = false;
 public int initialize = 0;
 public ConditionStep currentCondition;
 public Dictionary<String, object> variables = new Dictionary<String, object>();
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
 }
+float g0Mult = 5;
+float g1Mult = 1;
 public bool Init(int i) {
+    if(i==0){
+        newSequence("Unfold");
+        addParallel();
+        addRotor("Hinge L2", 0, 0.5f);
+        addRotor("Hinge R2", 0, 0.5f);
+        addRotor("Hinge L5", 0, 0.5f);
+        addRotor("Hinge R5", 0, 0.5f);
+        endParallel();
+        addParallel();
+        addMerge("Merge L1");
+        addMerge("Merge R1");
+        endParallel();
+        addParallel();
+        addToggle("Merge C1", false);
+        addToggle("Merge C2", false);
+        endParallel();
+        addParallel();
+        addHinge("Hinge C1", -45, 2f);
+        addHinge("Hinge L3", 0, 0.5f);
+        addHinge("Hinge R3", 0, 0.5f);
+        addHinge("Hinge L4", 0, 0.5f);
+        addHinge("Hinge R4", 0, 0.5f);
+        
+        addHinge("Hinge L1", 0, 0.5f);
+        addHinge("Hinge R1", 0, 0.5f);
+        addHinge("Hinge L6", 0, 0.5f);
+        addHinge("Hinge R6", 0, 0.5f);
+        endParallel();
+        addParallel();
+        addToggle("Merge L2", false);
+        addToggle("Merge R2", false);
+        addToggle("Merge L3", false);
+        addToggle("Merge R3", false);
+        endParallel();
+        addParallel();
+        addHinge("Hinge L7", 90, 0.75f);
+        addHinge("Hinge R7", 90, 0.75f);
+        addHinge("Hinge L8", 90, 0.75f);
+        addHinge("Hinge R8", 90, 0.75f);
+        endParallel();
+        return true;
+    }
+    if(i==1){
+        newSequence("Fold");
+        addParallel();
+        addRotor("Hinge R1", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge L1", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge R3", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge L3", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge R4", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge L4", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge R6", 0, 0.03f*g0Mult, 3);
+        addRotor("Hinge L6", 0, 0.03f*g0Mult, 3);
+        for(int p = 1; p<=16; p++){
+            addPiston("Piston L"+p, 0, 0.05f*g0Mult, 3);
+            addPiston("Piston R"+p, 0, 0.05f*g0Mult, 3);
+        }
+        endParallel();
+        addParallel();
+        addHinge("Hinge L7", 0, 0.75f);
+        addHinge("Hinge R7", 0, 0.75f);
+        addHinge("Hinge L8", 0, 0.75f);
+        addHinge("Hinge R8", 0, 0.75f);
+        endParallel();
+        addParallel();
+        addMerge("Merge L2");
+        addMerge("Merge R2");
+        addMerge("Merge L3");
+        addMerge("Merge R3");
+        endParallel();
+        addParallel();
+        addToggle("Hinge L7", false);
+        addToggle("Hinge L8", false);
+        addToggle("Hinge R7", false);
+        addToggle("Hinge R8", false);
+        endParallel();
+        addParallel();
+        addHinge("Hinge C1", 0, 0.25f);
+        addHinge("Hinge L3", 90, 0.5f);
+        addHinge("Hinge R3", 90, 0.5f);
+        addHinge("Hinge L4", 90, 0.5f);
+        addHinge("Hinge R4", 90, 0.5f);
+        endParallel();
+        addParallel();
+        addMerge("Merge C1");
+        addMerge("Merge C2");
+        endParallel();
+        addParallel();
+        addToggle("Hinge L3", false);
+        addToggle("Hinge R3", false);
+        addToggle("Hinge L4", false);
+        addToggle("Hinge R4", false);
+
+        addToggle("Merge L1", false);
+        addToggle("Merge R1", false);
+        endParallel();
+        addParallel();
+        addRotor("Hinge L2", 90, 0.5f);
+        addRotor("Hinge R2", 90, 0.5f);
+        addRotor("Hinge L5", 90, 0.5f);
+        addRotor("Hinge R5", 90, 0.5f);
+        endParallel();
+        return true;
+    }
+    if(i<=102){
+        int num = i-2;
+        float percent = num/100f;
+        float rpercent = 1-percent;
+        newSequence("G0 "+num+"%");
+        addParallel();
+        addToggle("Welder C", false);
+        for(int l = 1; l<=22; l++){
+            addToggle("Welder L"+l, false);
+        }
+        for(int r = 1; r<=23; r++){
+            addToggle("Welder R"+r, false);
+        }
+        endParallel();
+        addParallel();
+        addRotor("Hinge R1", 90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge L1", 90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge R3", -90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge L3", -90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge R4", -90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge L4", -90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge R6", -90*rpercent, 0.03f*g0Mult, 3);
+        addRotor("Hinge L6", -90*rpercent, 0.03f*g0Mult, 3);
+        for(int p = 1; p<=16; p++){
+            addPiston("Piston L"+p, percent*10, 0.05f*g0Mult, 3);
+            addPiston("Piston R"+p, percent*10, 0.05f*g0Mult, 3);
+        }
+        endParallel();
+        return true;
+    }
+    if(i<=203){
+        int num = i-103;
+        float percent = num/100f;
+        float rpercent = 1-percent;
+        newSequence("G1 "+num+"%");
+        addParallel();
+        addToggle("Welder C", true);
+        for(int l = 1; l<=22; l++){
+            addToggle("Welder L"+l, true);
+        }
+        for(int r = 1; r<=23; r++){
+            addToggle("Welder R"+r, true);
+        }
+        endParallel();
+        addParallel();
+        addRotor("Hinge R1", 90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge L1", 90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge R3", -90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge L3", -90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge R4", -90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge L4", -90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge R6", -90*rpercent, 0.03f*g1Mult, 5);
+        addRotor("Hinge L6", -90*rpercent, 0.03f*g1Mult, 5);
+        for(int p = 1; p<=16; p++){
+            addPiston("Piston L"+p, percent*10, 0.05f*g1Mult, 5);
+            addPiston("Piston R"+p, percent*10, 0.05f*g1Mult, 5);
+        }
+        endParallel();
+        addParallel();
+        addToggle("Welder C", false);
+        for(int l = 1; l<=22; l++){
+            addToggle("Welder L"+l, false);
+        }
+        for(int r = 1; r<=23; r++){
+            addToggle("Welder R"+r, false);
+        }
+        endParallel();
+        return true;
+    }
     return false;
 }
 public void newSequence(String name){
@@ -44,7 +219,8 @@ public void addRotor(String block, float target, float speed){
 public void addRotor(String block, float target, float speed, float easing){
     addSequenceStep(new RotorSequenceStep(this, block, target*(float)Math.PI/180, speed*(float)Math.PI/180, easing*(float)Math.PI/180));
 }
-public void addRotorStop(string rotor){
+public void addRotorStop(string rotor)
+{
     addSequenceStep(new RotorStopSequenceStep(this, rotor));
 }
 public void addPiston(String block, float target){
