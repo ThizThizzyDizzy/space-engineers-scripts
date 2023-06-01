@@ -104,6 +104,7 @@ public void endParallel(){
         return;
     }
     SequenceStep last = currentSequence.steps[currentSequence.steps.Count-1];
+    if(last is ConditionStep&&((ConditionStep)last).step!=null)last = ((ConditionStep)last).step;
     if(last is ParallelStep&&((ParallelStep)last).building){
         while(last is ParallelStep&&((ParallelStep)last).building){
             if(((ParallelStep)last).substeps.Count==0){

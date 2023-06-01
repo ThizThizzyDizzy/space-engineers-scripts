@@ -7,12 +7,15 @@ public ConditionStep currentCondition;
 public Dictionary<String, object> variables = new Dictionary<String, object>();
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
+    variables["Unfolded"] = !(findBlock("Merge L2") as IMyShipMergeBlock).Enabled;
+    variables["Folded"] = (findBlock("Merge C1") as IMyShipMergeBlock).Enabled;
 }
 float g0Mult = 5;
 float g1Mult = 1;
 public bool Init(int i) {
     if(i==0){
         newSequence("Unfold");
+        setVar("Folded", false);
         addParallel();
         addRotor("Hinge L2", 0, 0.5f);
         addRotor("Hinge R2", 0, 0.5f);
@@ -51,10 +54,12 @@ public bool Init(int i) {
         addHinge("Hinge L8", 90, 0.75f);
         addHinge("Hinge R8", 90, 0.75f);
         endParallel();
+        setVar("Unfolded", true);
         return true;
     }
     if(i==1){
         newSequence("Fold");
+        setVar("Unfolded", false);
         addParallel();
         addRotor("Hinge R1", 0, 0.03f*g0Mult, 3);
         addRotor("Hinge L1", 0, 0.03f*g0Mult, 3);
@@ -113,6 +118,7 @@ public bool Init(int i) {
         addRotor("Hinge L5", 90, 0.5f);
         addRotor("Hinge R5", 90, 0.5f);
         endParallel();
+        setVar("Folded", true);
         return true;
     }
     if(i<=102){
@@ -120,15 +126,15 @@ public bool Init(int i) {
         float percent = num/100f;
         float rpercent = 1-percent;
         newSequence("G0 "+num+"%");
+        setConditional("Unfolded");
         addParallel();
         addToggle("Welder C", false);
-        for(int l = 1; l<=22; l++){
-            addToggle("Welder L"+l, false);
-        }
-        for(int r = 1; r<=23; r++){
-            addToggle("Welder R"+r, false);
+        for(int j = 1; j<=23; j++){
+            addToggle("Welder L"+j, false);
+            addToggle("Welder R"+j, false);
         }
         endParallel();
+        setConditional("Unfolded");
         addParallel();
         addRotor("Hinge R1", 90*rpercent, 0.03f*g0Mult, 3);
         addRotor("Hinge L1", 90*rpercent, 0.03f*g0Mult, 3);
@@ -150,15 +156,15 @@ public bool Init(int i) {
         float percent = num/100f;
         float rpercent = 1-percent;
         newSequence("G1 "+num+"%");
+        setConditional("Unfolded");
         addParallel();
         addToggle("Welder C", true);
-        for(int l = 1; l<=22; l++){
-            addToggle("Welder L"+l, true);
-        }
-        for(int r = 1; r<=23; r++){
-            addToggle("Welder R"+r, true);
+        for(int j = 1; j<=23; j++){
+            addToggle("Welder L"+j, true);
+            addToggle("Welder R"+j, true);
         }
         endParallel();
+        setConditional("Unfolded");
         addParallel();
         addRotor("Hinge R1", 90*rpercent, 0.03f*g1Mult, 5);
         addRotor("Hinge L1", 90*rpercent, 0.03f*g1Mult, 5);
@@ -173,13 +179,12 @@ public bool Init(int i) {
             addPiston("Piston R"+p, percent*10, 0.05f*g1Mult, 5);
         }
         endParallel();
+        setConditional("Unfolded");
         addParallel();
         addToggle("Welder C", false);
-        for(int l = 1; l<=22; l++){
-            addToggle("Welder L"+l, false);
-        }
-        for(int r = 1; r<=23; r++){
-            addToggle("Welder R"+r, false);
+        for(int j = 1; j<=23; j++){
+            addToggle("Welder L"+j, false);
+            addToggle("Welder R"+j, false);
         }
         endParallel();
         return true;
@@ -280,6 +285,7 @@ public void endParallel(){
         return;
     }
     SequenceStep last = currentSequence.steps[currentSequence.steps.Count-1];
+    if(last is ConditionStep&&((ConditionStep)last).step!=null)last = ((ConditionStep)last).step;
     if(last is ParallelStep&&((ParallelStep)last).building){
         while(last is ParallelStep&&((ParallelStep)last).building){
             if(((ParallelStep)last).substeps.Count==0){
@@ -308,6 +314,7 @@ public void addSequenceStep(SequenceStep step){
         return;
     }
     SequenceStep last = currentSequence.steps[currentSequence.steps.Count-1];
+    if(last is ConditionStep&&((ConditionStep)last).step!=null)last = ((ConditionStep)last).step;
     if(last is ParallelStep&&((ParallelStep)last).building){
         while(last is ParallelStep&&((ParallelStep)last).building){
             if(((ParallelStep)last).substeps.Count==0){
