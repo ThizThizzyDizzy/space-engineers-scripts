@@ -1,13 +1,13 @@
 public List<Sequence> sequences = new List<Sequence>();
 public List<Sequence> removeSequences = new List<Sequence>();
 public Sequence currentSequence;
-public bool useCustomData = true;
 public int initialize = 0;
 public ConditionStep currentCondition;
 public Dictionary<String, object> variables = new Dictionary<String, object>();
 public Program(){
     Runtime.UpdateFrequency = UpdateFrequency.Update1;
 }
+public bool useCustomData = true;
 public bool Init(int i) {
     return false;
 }
@@ -163,6 +163,13 @@ public void Main(String arg){
             s.breakRepeat = false;
         }
     }
+    if(arg=="_ResetRotors"){
+        foreach(Sequence s in sequences){
+            foreach(SequenceStep step in s.steps){
+                step.resetRotors();
+            }
+        }
+    }
     foreach(String s in variables.Keys){
         Echo(s+": "+variables[s]);
     }
@@ -231,6 +238,7 @@ public abstract class SequenceStep{
     public virtual void start(){}
     public abstract void process();
     public virtual void finish(){}
+    public virtual void resetRotors(){}
 }
 public class ParallelStep : SequenceStep{
     public List<SequenceStep> substeps = new List<SequenceStep>();
@@ -262,6 +270,10 @@ public class ParallelStep : SequenceStep{
     }
     public override void finish(){
         foreach(SequenceStep step in substeps)step.finish();
+    }
+    public override void resetRotors()
+    {
+        foreach(SequenceStep step in substeps)step.resetRotors();
     }
 }
 public class SetVarStep : SequenceStep{
@@ -369,6 +381,13 @@ public class RotorSequenceStep : SequenceStep{
     float dr(float f){
         return (float)Math.Round(f*180/Math.PI);
     }
+    public override void resetRotors()
+    {
+        bool isEnabled = rotor.Enabled;
+        rotor.Enabled = false;
+        rotor.TargetVelocityRad = 0;
+        rotor.Enabled = isEnabled;
+    }
 }
 public class RotorStopSequenceStep : SequenceStep
 {
@@ -409,6 +428,13 @@ public class RotorStopSequenceStep : SequenceStep
     float dr(float f)
     {
         return (float)Math.Round(f * 18000 / Math.PI)/100f;
+    }
+    public override void resetRotors()
+    {
+        bool isEnabled = rotor.Enabled;
+        rotor.Enabled = false;
+        rotor.TargetVelocityRad = 0;
+        rotor.Enabled = true;
     }
 }
 public class PistonSequenceStep : SequenceStep{

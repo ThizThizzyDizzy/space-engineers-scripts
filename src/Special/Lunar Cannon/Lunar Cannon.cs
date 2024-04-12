@@ -915,6 +915,10 @@ public class RotorSequenceStep : SequenceStep{
     public override void process(){
         p.Echo((p.useCustomData?rotor.CustomData:rotor.CustomName)+": "+dr(startAngle)+" > "+dr(getAngle())+" > "+dr(target));
         float val = p.easeCurve(startAngle, target, easing, getAngle(), 0.01f)*vel*10;
+        if(Double.IsNaN(val)||Double.IsInfinity(val)){
+            p.Echo("Tried to set rotor to invalid value! "+dr(val));
+            return;
+        }
         if(rotor.TargetVelocityRad!=val){
             rotor.TargetVelocityRad = val;
             p.Echo("Adjusting Velocity to "+dr(val));
@@ -995,6 +999,10 @@ public class PistonSequenceStep : SequenceStep{
     public override void process(){
         p.Echo((p.useCustomData?piston.CustomData:piston.CustomName)+": "+r(startPos)+" > "+r(piston.CurrentPosition)+" > "+r(target));
         float val = p.easeCurve(startPos, target, easing, piston.CurrentPosition, 0.02f/speed, 0.05f)*speed;
+        if(Double.IsNaN(val)||Double.IsInfinity(val)){
+            p.Echo("Tried to set piston to invalid value! "+r(val));
+            return;
+        }
         if(piston.Velocity!=val){
             piston.Velocity = val;
             p.Echo("Adjusting Velocity to "+r(val));
