@@ -19,11 +19,17 @@ public void Main(){
         rebuildTimer-=rebuildTime;
         return;
     }
-    errors = "";
     foreach(IMyFunctionalBlock block in toggleables){
-        if(!block.CustomData.StartsWith("Toggle\n"))continue;
-        String data = block.CustomData.Substring(7);
-        bool shouldBeOn = true;
+        bool isOr = false;
+        String data = block.CustomData;
+        if(data.StartsWith("OToggle")){
+            isOr = true;
+            data = data.Substring(1);
+ 
+        }
+        if(!data.StartsWith("Toggle\n"))continue;
+        data = data.Substring(7);
+        bool shouldBeOn = !isOr;
         while(true){
             String condition = data.Contains("\n")?data.Substring(0, data.IndexOf("\n")):data;
             try{
@@ -61,7 +67,11 @@ public void Main(){
                         conditionMet = percent>threshold;
                     }
                 }
-                if(!conditionMet)shouldBeOn = false;
+                if(isOr){
+                    if(conditionMet)shouldBeOn = true;
+                }else{
+                    if(!conditionMet)shouldBeOn = false;
+                }
             }catch{
                 error("Failed to parse condition "+condition+" in block "+block.CustomName);
             }
@@ -71,16 +81,15 @@ public void Main(){
         error(block.CustomName+" "+(shouldBeOn?"ON":"OFF"));
         block.Enabled = shouldBeOn;
     }
-    Echo(errors==""?"":errors);
     Me.GetSurface(0).ContentType = ContentType.TEXT_AND_IMAGE;
     Me.GetSurface(0).WriteText(errors==""?"":errors, false);
     Me.GetSurface(0).FontSize = .9f;
+    errors = "";
 }
 void rebuild(){
     battery.refresh();
     oxygen.refresh();
     hydrogen.refresh();
-    errors = "";
     toggleables.Clear();
     List<IMyTerminalBlock> lst = new List<IMyTerminalBlock>();
     GridTerminalSystem.GetBlocks(lst);
@@ -88,10 +97,11 @@ void rebuild(){
         if(b.CubeGrid!=Me.CubeGrid)continue;
         if(b as IMyFunctionalBlock==null)continue;
         if(!b.IsFunctional)continue;
-        if(b.CustomData.StartsWith("Toggle\n"))toggleables.Add(b as IMyFunctionalBlock);
+        if(b.CustomData.StartsWith("Toggle\n")||b.CustomData.StartsWith("OToggle\n"))toggleables.Add(b as IMyFunctionalBlock);
     }
 }
 void error(String error){
+    Echo(error);
     if(errors=="")errors = error;
     else errors+="\n"+error;
 }
