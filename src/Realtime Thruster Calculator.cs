@@ -187,6 +187,14 @@ public void Main(String arg){
                 }else{
                     text+="\nCurrent Max Accel: "+directionS+" ("+makeReadable(rawAcceleration-planet.getGravity(alt))+" m/s^2)\n";
                 }
+                double stoppingDistance = 0;
+                stoppingDistance = Math.Max(stoppingDistance, GetStoppingDistance(Vector3I.Up, planet, alt));
+                stoppingDistance = Math.Max(stoppingDistance, GetStoppingDistance(Vector3I.Down, planet, alt));
+                stoppingDistance = Math.Max(stoppingDistance, GetStoppingDistance(Vector3I.Forward, planet, alt));
+                stoppingDistance = Math.Max(stoppingDistance, GetStoppingDistance(Vector3I.Backward, planet, alt));
+                stoppingDistance = Math.Max(stoppingDistance, GetStoppingDistance(Vector3I.Left, planet, alt));
+                stoppingDistance = Math.Max(stoppingDistance, GetStoppingDistance(Vector3I.Right, planet, alt));
+                if(stoppingDistance>0.1)text+="\nStopping Distance: "+makeReadable(stoppingDistance)+" m";
             }
         }else{
             double lowAlt = planet.lowerAtmosphere;
@@ -227,6 +235,17 @@ public void Main(String arg){
         }
     }
     display(text);
+}
+double GetStoppingDistance(Vector3I dir, Planet planet, double alt){
+    if(velocities==null||mass==null)return 0;
+    double shipMass = ((MyShipMass)mass).TotalMass;
+    var vel = velocities.Value.LinearVelocity;
+    vel.X*=dir.X;
+    vel.Y*=dir.Y;
+    vel.Z*=dir.Z;
+    var speed = Math.Max(0, vel.X+vel.Y+vel.Z);
+    var accel = thrusters.getThrust(Vector3I.Up, planet, alt)/shipMass;
+    return speed*(speed/accel)/2;
 }
 void display(String text){
     if(damageReport!=null){
