@@ -46,6 +46,7 @@ namespace IngameScript
         GasTank oxy;
         InventoryContainer ice;
         InventoryOverview cargo;
+        InventoryOverview drills;
         JumpDrive jumpdrive;
         Vector3D? naturalGravity;
         Vector3D? artificialGravity;
@@ -128,7 +129,8 @@ namespace IngameScript
                 hydro = new GasTank(this, "Hydrogen");
                 oxy = new GasTank(this, "Oxygen");
                 ice = new InventoryContainer(this, "Ice");
-                cargo = new InventoryOverview(this);
+                cargo = new InventoryOverview(this, true);
+                drills = new InventoryOverview(this, true, "Drill");
                 jumpdrive = new JumpDrive(this);
             }
             batTimer++;
@@ -331,6 +333,7 @@ namespace IngameScript
             }
             if (ice.containers.Count > 0) {
                 text += "\nCargo: " + makeReadable(cargo.getFillPercent() * 100) + "%";
+                if (drills.getFillLevel() > 0) text += "\nDrills: " + makeReadable(drills.getFillPercent() * 100) + "%";
                 if (ice.getFillLevelI() > 0) {
                     bool charging = ice.rateT >= 0;
                     if (wideMode) {
@@ -819,14 +822,21 @@ namespace IngameScript
             public List<String> allowedContainers = new List<String>();
             public List<IMyTerminalBlock> containers = new List<IMyTerminalBlock>();
             Program p;
-            public InventoryOverview(Program p) {
+            bool searchAllGrids;
+            public InventoryOverview(Program p, bool searchAllGrids = false, params string[] filters) {
                 this.p = p;
-                allowedContainers.Add("Small Cargo Container");
-                allowedContainers.Add("Medium Cargo Container");
-                allowedContainers.Add("Large Cargo Container");
-                allowedContainers.Add("Connector");
-                allowedContainers.Add("Cockpit");
-                allowedContainers.Add("Fighter Cockpit");
+                this.searchAllGrids = searchAllGrids;
+                if (filters.Length > 0) {
+                    allowedContainers.AddRange(filters);
+                }
+                else {
+                    allowedContainers.Add("Small Cargo Container");
+                    allowedContainers.Add("Medium Cargo Container");
+                    allowedContainers.Add("Large Cargo Container");
+                    allowedContainers.Add("Connector");
+                    allowedContainers.Add("Cockpit");
+                    allowedContainers.Add("Fighter Cockpit");
+                }
                 refresh();
             }
             public void refresh() {
@@ -837,7 +847,7 @@ namespace IngameScript
                 List<IMyTerminalBlock> lst = new List<IMyTerminalBlock>();
                 p.GridTerminalSystem.GetBlocks(lst);
                 foreach (IMyTerminalBlock b in lst) {
-                    if (b.CubeGrid != grid) continue;
+                    if (b.CubeGrid != grid && !searchAllGrids) continue;
                     if (b.HasInventory && allowedContainers.Contains(b.DefinitionDisplayNameText)) containers.Add(b);
                 }
             }
