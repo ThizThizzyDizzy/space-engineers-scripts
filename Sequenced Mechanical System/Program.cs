@@ -32,9 +32,6 @@ namespace IngameScript
             Runtime.UpdateFrequency = UpdateFrequency.Update1;
         }
         public bool useCustomData = true;
-        public bool Init(int i) {
-            return false;
-        }
         public void newSequence(String name) {
             currentSequence = new Sequence(name, this);
             sequences.Add(currentSequence);
@@ -81,6 +78,9 @@ namespace IngameScript
         }
         public void addDoor(String block, bool open) {
             addSequenceStep(new DoorSequenceStep(this, block, open));
+        }
+        public void addSensor(String block, bool activated) {
+            addSequenceStep(new SensorSequenceStep(this, block, activated));
         }
         public void addDoors(String block, bool open) {
             addSequenceStep(new DoorsSequenceStep(this, block, open));
@@ -627,6 +627,24 @@ namespace IngameScript
             }
             public override void process() {
                 p.Echo((p.useCustomData ? merge.CustomData : merge.CustomName) + ": " + (merge.IsConnected ? "Merged!" : "Waiting..."));
+            }
+        }
+        public class SensorSequenceStep : SequenceStep
+        {
+            public IMySensorBlock sensor;
+            public bool open;
+            public Program p;
+            public SensorSequenceStep(Program p, String name, bool open) {
+                this.p = p;
+                sensor = p.findBlock(name) as IMySensorBlock;
+                this.open = open;
+            }
+            public override float getProgress() {
+                if (open) return sensor.IsActive ? 1 : 0;
+                else return sensor.IsActive ? 0 : 1;
+            }
+            public override void process() {
+                p.Echo((p.useCustomData ? sensor.CustomData : sensor.CustomName) + ": " + sensor.IsActive);
             }
         }
         public class BlockToggleSequenceStep : SequenceStep
