@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simple Airlock Manager", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sequenced Mechanical System", "Sequenced Mechanical System\Sequenced Mechanical System.csproj", "{31798C3A-5FEF-45BC-A483-2FFFB71AD6E1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Block Toggler", "Block Toggler\Block Toggler.csproj", "{8D49676F-143E-4A58-9B0B-CF45DA1DB0FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{31798C3A-5FEF-45BC-A483-2FFFB71AD6E1}.Debug|x64.Build.0 = Debug|x64
 		{31798C3A-5FEF-45BC-A483-2FFFB71AD6E1}.Release|x64.ActiveCfg = Release|x64
 		{31798C3A-5FEF-45BC-A483-2FFFB71AD6E1}.Release|x64.Build.0 = Release|x64
+		{8D49676F-143E-4A58-9B0B-CF45DA1DB0FC}.Debug|x64.ActiveCfg = Debug|x64
+		{8D49676F-143E-4A58-9B0B-CF45DA1DB0FC}.Debug|x64.Build.0 = Debug|x64
+		{8D49676F-143E-4A58-9B0B-CF45DA1DB0FC}.Release|x64.ActiveCfg = Release|x64
+		{8D49676F-143E-4A58-9B0B-CF45DA1DB0FC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
