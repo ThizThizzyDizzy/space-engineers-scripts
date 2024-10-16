@@ -25,7 +25,7 @@ namespace IngameScript
         const int rebuildTime = 6;
         int rebuildTimer = 0;
         List<IMyFunctionalBlock> toggleables = new List<IMyFunctionalBlock>();
-        String errors;
+        String errors = "";
         GasTank hydrogen;
         GasTank oxygen;
         Battery battery;
