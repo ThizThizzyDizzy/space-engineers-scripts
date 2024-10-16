@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ship Systems Monitor", "Ship Systems Monitor\Ship Systems Monitor.csproj", "{5D1BAF0E-749D-4D19-AA83-28EF5384FCD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simple Airlock Manager", "Simple Airlock Manager\Simple Airlock Manager.csproj", "{FF999C9C-66BD-4179-851D-EBD4E0D1F17E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{5D1BAF0E-749D-4D19-AA83-28EF5384FCD4}.Debug|x64.Build.0 = Debug|x64
 		{5D1BAF0E-749D-4D19-AA83-28EF5384FCD4}.Release|x64.ActiveCfg = Release|x64
 		{5D1BAF0E-749D-4D19-AA83-28EF5384FCD4}.Release|x64.Build.0 = Release|x64
+		{FF999C9C-66BD-4179-851D-EBD4E0D1F17E}.Debug|x64.ActiveCfg = Debug|x64
+		{FF999C9C-66BD-4179-851D-EBD4E0D1F17E}.Debug|x64.Build.0 = Debug|x64
+		{FF999C9C-66BD-4179-851D-EBD4E0D1F17E}.Release|x64.ActiveCfg = Release|x64
+		{FF999C9C-66BD-4179-851D-EBD4E0D1F17E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
