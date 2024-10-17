@@ -103,19 +103,16 @@ namespace IngameScript
             if (i == 3) {
                 newSequence("Stow Drills");
                 addToggle("Main Arm Merge Block", false);
-                MainArmRail(0.25f);
-                MainArmElevation(0.375f);
                 addParallel();
-                MainArmElevation(1.1f, 0.6f, false, 1f);
-                MainArmYaw(-7f, 0.1f);
-                ExtendArm(0, 0.1f, false);
-                addRotor("Main Arm Tool Rotor", 5f, 6);
-                addRotor("Nose Rotor", 0f, 1);
+                MainArmRail(0.25f, false);
+                MainArmElevation(0.375f, false);
+                addRotor("Nose Rotor", 0f, 1, 90);
                 addPiston("Nose Piston", 0f, 0.5f);
                 endParallel();
                 addParallel();
+                MainArmYaw(-7f, 0.1f);
                 ExtendArm(.62f, 0f, false);
-                MainArmElevation(1.466f, 0.441f, false, 1f, 0.2f);
+                MainArmElevation(1.467f, 0.439f, false, 1f, 0.2f);
                 addHinge("Main Arm Tool Hinge", 38, 1);
                 addRotor("Main Arm Tool Rotor", -6, 1);
                 endParallel();
@@ -127,7 +124,7 @@ namespace IngameScript
                 newSequence("Stow Main Arm");
                 addToggle("Main Arm Merge Block", false);
                 MainArmElevation(.5f, .75f);
-                ExtendArm(0, 0, speedMultiplier:3);
+                ExtendArm(0, 0, speedMultiplier: 3);
                 MainArmYaw(0f);
                 MainArmRail(0.25f);
                 addHinge("Main Arm Tool Hinge", 90, 5);
@@ -139,7 +136,7 @@ namespace IngameScript
             return false;
         }
         private void MainArmYaw(float degrees, float speedMultiplier = 1f) {
-            addRotor("Main Arm Yaw Rotor", degrees, 2f*speedMultiplier);
+            addRotor("Main Arm Yaw Rotor", degrees, 2f*speedMultiplier, 90);
         }
         private void MainArmRail(float percent, bool standalone = true) {
             if(standalone)addParallel();

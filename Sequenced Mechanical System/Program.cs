@@ -256,7 +256,7 @@ namespace IngameScript
         }
         public abstract class SequenceStep
         {
-            public float tolerance = 0.001f;
+            public float tolerance = 0.0001f;
             public bool isFinished() {
                 return getProgress() >= 1 - tolerance;
             }
@@ -396,7 +396,7 @@ namespace IngameScript
             }
             public override void process() {
                 p.Echo((p.useCustomData ? rotor.CustomData : rotor.CustomName) + ": " + dr(startAngle) + " > " + dr(getAngle()) + " > " + dr(target));
-                float val = p.easeCurve(startAngle, target, easing, getAngle(), 0.01f) * vel * 10;
+                float val = p.easeCurve(startAngle, target, easing, getAngle(), 0.05f) * vel * 10;
                 if (Double.IsNaN(val) || Double.IsInfinity(val)) {
                     p.Echo("Tried to set rotor to invalid value! " + dr(val));
                     return;
@@ -410,7 +410,7 @@ namespace IngameScript
                 rotor.TargetVelocityRad = 0;
             }
             float dr(float f) {
-                return (float)Math.Round(f * 180 / Math.PI);
+                return (float)Math.Round(f * 1800 / Math.PI)/10f;
             }
             public override void resetRotors() {
                 bool isEnabled = rotor.Enabled;
@@ -502,7 +502,7 @@ namespace IngameScript
                 piston.Velocity = 0;
             }
             float r(float f) {
-                return (float)Math.Round(f * 10) / 10f;
+                return (float)Math.Round(f * 100) / 100f;
             }
         }
         public class DoorSequenceStep : SequenceStep
