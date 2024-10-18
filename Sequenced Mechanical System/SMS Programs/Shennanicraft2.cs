@@ -101,6 +101,24 @@ namespace IngameScript
                 return true;
             }
             if (i == 3) {
+                newSequence("Stow Main Arm");
+                addToggle("Main Arm Merge Block", false);
+                MainArmElevation(.5f, .75f);
+                addParallel();
+                ExtendArm(0, 0, false, speedMultiplier: 3);
+                MainArmYaw(0f);
+                addHinge("Main Arm Tool Hinge", 90, 5);
+                addRotor("Main Arm Tip Rotor", 0, 5);
+                addRotor("Main Arm Tool Rotor", 0, 5);
+                endParallel();
+                addParallel();
+                MainArmRail(0.25f, false);
+                MainArmElevation(0f);
+                endParallel();
+                MainArmRail(0f);
+                return true;
+            }
+            if (i == 4) {
                 newSequence("Stow Drills");
                 addToggle("Main Arm Merge Block", false);
                 addParallel();
@@ -111,26 +129,76 @@ namespace IngameScript
                 endParallel();
                 addParallel();
                 MainArmYaw(-7f, 0.1f);
-                ExtendArm(.62f, 0f, false);
-                MainArmElevation(1.467f, 0.439f, false, 1f, 0.2f);
+                ExtendArm(.62f, 0f, false, 2f);
+                MainArmElevation(1.467f, 0.439f, false, 1f, 0.7f);
                 addHinge("Main Arm Tool Hinge", 38, 1);
-                addRotor("Main Arm Tool Rotor", -6, 1);
+                addRotor("Main Arm Tool Rotor", -7, 1);
+                addRotor("Main Arm Tip Rotor", 0, 1);
                 endParallel();
                 addToggle("Main Arm Merge Block", true);
                 addMerge("Main Arm Merge Block");
+                addRotorDetach("Nose Rotor");
+                MainArmElevation(1.467f, .6f, true, speedMultiplier: 0.3f);
+                addParallel();
+                MainArmYaw(90, 0.2f);
+                addHinge("Main Arm Tool Hinge", -10, 1);
+                addRotor("Main Arm Tool Rotor", 180, 0.5f);
+                endParallel();
+                addParallel();
+                MainArmRail(0.228f, false, 0.2f);
+                MainArmElevation(1.718f, 0.359f, false, speedMultiplier: 0.2f);
+                ExtendArm(0.242f, 0f, false);
+                addHinge("Main Arm Tool Hinge", 90, 1f);
+                addRotor("Main Arm Tip Rotor", 0, 0.5f);
+                endParallel();
+                addToggle("Drill Bay Merge Block", true);
+                addMerge("Drill Bay Merge Block");
+                addToggle("Main Arm Merge Block", false);
+                runSequence("Stow Main Arm");
                 return true;
             }
-            if (i == 4) {
-                newSequence("Stow Main Arm");
+            if (i == 5) {
+                newSequence("Attach Drills");
                 addToggle("Main Arm Merge Block", false);
-                MainArmElevation(.5f, .75f);
-                ExtendArm(0, 0, speedMultiplier: 3);
-                MainArmYaw(0f);
-                MainArmRail(0.25f);
-                addHinge("Main Arm Tool Hinge", 90, 5);
-                addRotor("Main Arm Tool Rotor", 0, 5);
-                MainArmElevation(0f);
-                MainArmRail(0f);
+                addParallel();
+                MainArmRail(0.25f, false);
+                MainArmElevation(0.25f, false);
+                MainArmYaw(90);
+                endParallel();
+                addParallel();
+                addRotor("Main Arm Tool Rotor", 180, 3f);
+                MainArmRail(0.228f, false, 0.2f);
+                MainArmElevation(1.718f, 0.359f, false, 0.7f);
+                ExtendArm(0.242f, 0f, false);
+                addHinge("Main Arm Tool Hinge", 90, 2f);
+                addRotor("Main Arm Tip Rotor", 0, 2f);
+                endParallel();
+                addToggle("Main Arm Merge Block", true);
+                addMerge("Main Arm Merge Block");
+                addToggle("Drill Bay Merge Block", false);
+                addParallel();
+                addHinge("Main Arm Tool Hinge", -10, 1f);
+                ExtendArm(.62f, 0f, false);
+                MainArmElevation(1.467f, .6f, false, speedMultiplier: 0.2f);
+                MainArmRail(0.25f, false);
+                endParallel();
+                addParallel();
+                addRotor("Main Arm Tool Rotor", -7, 0.5f);
+                MainArmYaw(-7, 0.2f);
+                endParallel();
+                addParallel();
+                addHinge("Main Arm Tool Hinge", 38, 1f);
+                MainArmElevation(1.467f, 0.439f, true, speedMultiplier: 0.3f);
+                endParallel();
+                addRotorAttach("Nose Rotor");
+                addToggle("Main Arm Merge Block", false);
+                runSequence("Stow Main Arm");
+                return true;
+            }
+            if (i == 6) {
+                newSequence("Test");
+                addParallel();
+                endParallel();
                 return true;
             }
             return false;
@@ -138,11 +206,11 @@ namespace IngameScript
         private void MainArmYaw(float degrees, float speedMultiplier = 1f) {
             addRotor("Main Arm Yaw Rotor", degrees, 2f*speedMultiplier, 90);
         }
-        private void MainArmRail(float percent, bool standalone = true) {
+        private void MainArmRail(float percent, bool standalone = true, float speedMultiplier = 1f) {
             if(standalone)addParallel();
-            addPiston("Main Arm Rail Piston 1", percent * 10, .5f);
-            addPiston("Main Arm Rail Piston 2", percent * 10, .5f);
-            addPiston("Main Arm Rail Piston 3", percent * 10, .5f);
+            addPiston("Main Arm Rail Piston 1", percent * 10, .25f * speedMultiplier);
+            addPiston("Main Arm Rail Piston 2", percent * 10, .25f * speedMultiplier);
+            addPiston("Main Arm Rail Piston 3", percent * 10, .25f * speedMultiplier);
             if(standalone)endParallel();
         }
         private void MainArmElevation(float percent, bool standalone = true) {

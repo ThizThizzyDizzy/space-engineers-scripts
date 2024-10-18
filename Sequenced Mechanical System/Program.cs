@@ -67,6 +67,10 @@ namespace IngameScript
         public void addRotorStop(string rotor) {
             addSequenceStep(new RotorStopSequenceStep(this, rotor));
         }
+        public void addRotorDetach(string rotor) => addRotorAttach(rotor, false);
+        public void addRotorAttach(string rotor, bool attach = true) {
+            addSequenceStep(new RotorAttachSequenceStep(this, rotor, attach));
+        }
         public void addPiston(String block, float target) {
             addPiston(block, target, 10);
         }
@@ -452,6 +456,36 @@ namespace IngameScript
             }
             float dr(float f) {
                 return (float)Math.Round(f * 18000 / Math.PI) / 100f;
+            }
+            public override void resetRotors() {
+                bool isEnabled = rotor.Enabled;
+                rotor.Enabled = false;
+                rotor.TargetVelocityRad = 0;
+                rotor.Enabled = true;
+            }
+        }
+        public class RotorAttachSequenceStep : SequenceStep
+        {
+            public IMyMotorStator rotor;
+            public Program p;
+            private bool attach;
+            public RotorAttachSequenceStep(Program p, String name, bool attach) {
+                this.p = p;
+                rotor = p.findBlock(name) as IMyMotorStator;
+                this.attach = attach;
+            }
+            public override float getProgress() {
+                if (attach) {
+                    return rotor.IsAttached ? 1 : 0;
+                }
+                else {
+                    return rotor.IsAttached ? 0 : 1;
+                }
+            }
+            public override void process() {
+                p.Echo((attach ? "Attaching" : "Detaching") + (p.useCustomData ? rotor.CustomData : rotor.CustomName));
+                if (attach) rotor.Attach();
+                else rotor.Detach();
             }
             public override void resetRotors() {
                 bool isEnabled = rotor.Enabled;
